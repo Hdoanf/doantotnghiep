@@ -13,7 +13,8 @@ class HealthApp extends StatelessWidget {
     return MaterialApp(
       title: 'HF Health',
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      darkTheme: AppTheme.lightTheme,
+      themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
       home: const AuthWrapper(),
     );

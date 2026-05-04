@@ -5,14 +5,30 @@ class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Stream<List<HealthRecord>> getHealthRecords(String userId) {
-    return _db
-        .collection('health_records')
-        .where('userId', isEqualTo: userId)
-        .orderBy('date', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => HealthRecord.fromFirestore(doc))
-            .toList());
+    return _healthRecordsQuery(userId).snapshots().map(_recordsFromSnapshot);
+  }
+
+  Stream<List<HealthRecord>> getRecentHealthRecords(
+    String userId, {
+    int limit = 20,
+  }) {
+    return _healthRecordsQuery(
+      userId,
+    ).limit(limit).snapshots().map(_recordsFromSnapshot);
+  }
+
+  Query<Map<String, dynamic>> _healthRecordsQuery(String userId) {
+    return _db.collection('health_records').where('userId', isEqualTo: userId);
+  }
+
+  List<HealthRecord> _recordsFromSnapshot(
+    QuerySnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    final records = snapshot.docs
+        .map((doc) => HealthRecord.fromFirestore(doc))
+        .toList();
+    records.sort((a, b) => b.date.compareTo(a.date));
+    return records;
   }
 
   Future<void> addHealthRecord(HealthRecord record) {

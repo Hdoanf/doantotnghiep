@@ -17,7 +17,8 @@ class ScanResultConfirmScreen extends StatefulWidget {
   });
 
   @override
-  State<ScanResultConfirmScreen> createState() => _ScanResultConfirmScreenState();
+  State<ScanResultConfirmScreen> createState() =>
+      _ScanResultConfirmScreenState();
 }
 
 class _ScanResultConfirmScreenState extends State<ScanResultConfirmScreen> {
@@ -27,7 +28,7 @@ class _ScanResultConfirmScreenState extends State<ScanResultConfirmScreen> {
   @override
   void initState() {
     super.initState();
-    final config = _getIndicatorConfigForType(widget.type);
+    final config = HealthConstants.scanIndicators;
     config.forEach((key, value) {
       _controllers[key] = TextEditingController(
         text: widget.initialIndicators.containsKey(key)
@@ -37,12 +38,19 @@ class _ScanResultConfirmScreenState extends State<ScanResultConfirmScreen> {
     });
   }
 
-  Map<String, dynamic> _getIndicatorConfigForType(RecordType type) {
-    switch (type) {
-      case RecordType.bloodTest: return HealthConstants.bloodIndicators;
-      case RecordType.vitals: return HealthConstants.vitalsIndicators;
-      case RecordType.bodyMetrics: return HealthConstants.bodyIndicators;
+  List<MapEntry<String, dynamic>> _scanConfigEntries() {
+    final detected = <MapEntry<String, dynamic>>[];
+    final empty = <MapEntry<String, dynamic>>[];
+
+    for (final entry in HealthConstants.scanIndicators.entries) {
+      if (widget.initialIndicators.containsKey(entry.key)) {
+        detected.add(entry);
+      } else {
+        empty.add(entry);
+      }
     }
+
+    return [...detected, ...empty];
   }
 
   void _save() async {
@@ -77,7 +85,9 @@ class _ScanResultConfirmScreenState extends State<ScanResultConfirmScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -86,7 +96,7 @@ class _ScanResultConfirmScreenState extends State<ScanResultConfirmScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final config = _getIndicatorConfigForType(widget.type);
+    final configEntries = _scanConfigEntries();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Xác nhận thông tin quét')),
@@ -99,7 +109,7 @@ class _ScanResultConfirmScreenState extends State<ScanResultConfirmScreen> {
               style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
             ),
             const SizedBox(height: 24),
-            ...config.entries.map((entry) {
+            ...configEntries.map((entry) {
               final key = entry.key;
               final item = entry.value;
               return IndicatorField(
@@ -116,7 +126,10 @@ class _ScanResultConfirmScreenState extends State<ScanResultConfirmScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: _isSaving ? null : _save,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
                 child: _isSaving
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text('Xác nhận & Lưu'),

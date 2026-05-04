@@ -6,8 +6,25 @@ import '../../services/firestore_service.dart';
 import '../../models/health_record.dart';
 import 'record_detail_screen.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  final _firestoreService = FirestoreService();
+  Stream<List<HealthRecord>>? _recordsStream;
+  String? _recordsUserId;
+
+  Stream<List<HealthRecord>> _streamForUser(String userId) {
+    if (_recordsUserId != userId) {
+      _recordsUserId = userId;
+      _recordsStream = _firestoreService.getHealthRecords(userId);
+    }
+    return _recordsStream!;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,10 +34,21 @@ class HistoryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Lịch sử sức khỏe')),
       body: StreamBuilder<List<HealthRecord>>(
-        stream: FirestoreService().getHealthRecords(user.uid),
+        stream: _streamForUser(user.uid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Không tải được dữ liệu Firestore.\n${snapshot.error}',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('Chưa có dữ liệu'));
@@ -39,7 +67,9 @@ class HistoryScreen extends StatelessWidget {
                     child: Icon(_getTypeIcon(record.type), color: Colors.white),
                   ),
                   title: Text(_getTypeName(record.type)),
-                  subtitle: Text(DateFormat('dd/MM/yyyy HH:mm').format(record.date)),
+                  subtitle: Text(
+                    DateFormat('dd/MM/yyyy HH:mm').format(record.date),
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.push(
@@ -60,25 +90,34 @@ class HistoryScreen extends StatelessWidget {
 
   Color _getTypeColor(RecordType type) {
     switch (type) {
-      case RecordType.bloodTest: return Colors.red;
-      case RecordType.vitals: return Colors.pink;
-      case RecordType.bodyMetrics: return Colors.blue;
+      case RecordType.bloodTest:
+        return Colors.red;
+      case RecordType.vitals:
+        return Colors.pink;
+      case RecordType.bodyMetrics:
+        return Colors.blue;
     }
   }
 
   IconData _getTypeIcon(RecordType type) {
     switch (type) {
-      case RecordType.bloodTest: return Icons.bloodtype;
-      case RecordType.vitals: return Icons.favorite;
-      case RecordType.bodyMetrics: return Icons.monitor_weight;
+      case RecordType.bloodTest:
+        return Icons.bloodtype;
+      case RecordType.vitals:
+        return Icons.favorite;
+      case RecordType.bodyMetrics:
+        return Icons.monitor_weight;
     }
   }
 
   String _getTypeName(RecordType type) {
     switch (type) {
-      case RecordType.bloodTest: return 'Xét nghiệm máu';
-      case RecordType.vitals: return 'Chỉ số sinh tồn';
-      case RecordType.bodyMetrics: return 'Chỉ số cơ thể';
+      case RecordType.bloodTest:
+        return 'Xét nghiệm máu';
+      case RecordType.vitals:
+        return 'Chỉ số sinh tồn';
+      case RecordType.bodyMetrics:
+        return 'Chỉ số cơ thể';
     }
   }
 }
