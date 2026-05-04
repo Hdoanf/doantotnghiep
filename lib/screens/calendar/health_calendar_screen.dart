@@ -57,17 +57,19 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
             padding: const EdgeInsets.all(16),
             children: [
               _todayCard(context, records),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               const Text(
                 'Hoạt động gần đây',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textColor,
+                  letterSpacing: -0.2,
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               if (grouped.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.only(top: 32),
-                  child: Center(child: Text('Chưa có hoạt động sức khỏe')),
-                )
+                _emptyState()
               else
                 ...grouped.entries.map((entry) {
                   return _dayGroup(entry.key, entry.value);
@@ -88,27 +90,34 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
     }).length;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor.withValues(alpha: 0.4)),
+        gradient: AppTheme.primaryGradient,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withValues(alpha: 0.25),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: AppTheme.accentLightColor,
-              borderRadius: BorderRadius.circular(10),
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
-              Icons.calendar_month_outlined,
-              color: AppTheme.primaryColor,
+              Icons.calendar_month_rounded,
+              color: Colors.white,
+              size: 24,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,49 +125,102 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                 Text(
                   DateFormat('EEEE, d/M/yyyy', 'vi').format(DateTime.now()),
                   style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   '$todayCount bản ghi trong hôm nay',
-                  style: const TextStyle(
-                    color: AppTheme.mutedTextColor,
-                    fontSize: 12,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 13,
                   ),
                 ),
               ],
             ),
           ),
-          IconButton(
-            tooltip: 'Thêm huyết áp',
-            onPressed: () => Navigator.push(
+          GestureDetector(
+            onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const BloodPressureInput()),
             ),
-            icon: const Icon(Icons.add_circle_outline),
-            color: AppTheme.primaryColor,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.add_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _emptyState() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 48),
+      child: Center(
+        child: Column(
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppTheme.accentLightColor,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Icon(
+                Icons.event_available_rounded,
+                color: AppTheme.primaryColor,
+                size: 30,
+              ),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Chưa có hoạt động sức khỏe',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.mutedTextColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _dayGroup(DateTime day, List<HealthRecord> records) {
     return Padding(
-      padding: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.only(top: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            DateFormat('dd/MM/yyyy').format(day),
-            style: const TextStyle(
-              color: AppTheme.mutedTextColor,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppTheme.surface2Color,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              DateFormat('dd/MM/yyyy').format(day),
+              style: const TextStyle(
+                color: AppTheme.secondaryTextColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           ...records.map(_recordTile),
         ],
       ),
@@ -166,18 +228,30 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
   }
 
   Widget _recordTile(HealthRecord record) {
+    final typeColor = _typeColor(record);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor.withValues(alpha: 0.4)),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppTheme.borderColor.withValues(alpha: 0.4),
+        ),
       ),
       child: Row(
         children: [
-          Icon(_typeIcon(record), color: AppTheme.primaryColor, size: 20),
-          const SizedBox(width: 10),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: typeColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(_typeIcon(record), color: typeColor, size: 18),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,6 +261,7 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
+                    color: AppTheme.textColor,
                   ),
                 ),
                 Text(
@@ -200,12 +275,19 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
             ),
           ),
           if (record.indicators.isNotEmpty)
-            Text(
-              '${record.indicators.length} chỉ số',
-              style: const TextStyle(
-                color: AppTheme.primaryColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: typeColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                '${record.indicators.length} chỉ số',
+                style: TextStyle(
+                  color: typeColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
         ],
@@ -226,14 +308,25 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
     return grouped;
   }
 
-  IconData _typeIcon(HealthRecord record) {
+  Color _typeColor(HealthRecord record) {
     if (record.indicators.isEmpty && record.note != null) {
-      return Icons.edit_note;
+      return AppTheme.normalColor;
     }
     return switch (record.type) {
-      RecordType.bloodTest => Icons.bloodtype,
-      RecordType.vitals => Icons.monitor_heart,
-      RecordType.bodyMetrics => Icons.monitor_weight,
+      RecordType.bloodTest => AppTheme.criticalColor,
+      RecordType.vitals => AppTheme.warningColor,
+      RecordType.bodyMetrics => AppTheme.infoColor,
+    };
+  }
+
+  IconData _typeIcon(HealthRecord record) {
+    if (record.indicators.isEmpty && record.note != null) {
+      return Icons.edit_note_rounded;
+    }
+    return switch (record.type) {
+      RecordType.bloodTest => Icons.bloodtype_rounded,
+      RecordType.vitals => Icons.monitor_heart_rounded,
+      RecordType.bodyMetrics => Icons.monitor_weight_rounded,
     };
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/app_theme.dart';
 import '../../models/health_record.dart';
 import '../../widgets/indicator_field.dart';
 import '../../config/health_constants.dart';
@@ -97,6 +98,7 @@ class _ScanResultConfirmScreenState extends State<ScanResultConfirmScreen> {
   @override
   Widget build(BuildContext context) {
     final configEntries = _scanConfigEntries();
+    final detectedCount = widget.initialIndicators.length;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Xác nhận thông tin quét')),
@@ -104,11 +106,59 @@ class _ScanResultConfirmScreenState extends State<ScanResultConfirmScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const Text(
-              'Vui lòng kiểm tra lại các chỉ số AI đã trích xuất được. Bạn có thể chỉnh sửa nếu cần thiết.',
-              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+            // Info banner
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppTheme.infoLightColor,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: AppTheme.infoColor.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppTheme.infoColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.auto_awesome,
+                      color: AppTheme.infoColor,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'AI đã nhận diện $detectedCount chỉ số',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            color: AppTheme.textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          'Kiểm tra lại và chỉnh sửa nếu cần thiết',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.secondaryTextColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             ...configEntries.map((entry) {
               final key = entry.key;
               final item = entry.value;
@@ -120,19 +170,48 @@ class _ScanResultConfirmScreenState extends State<ScanResultConfirmScreen> {
                 controller: _controllers[key]!,
               );
             }),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _isSaving ? null : _save,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
+              height: 54,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-                child: _isSaving
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Xác nhận & Lưu'),
+                child: ElevatedButton.icon(
+                  onPressed: _isSaving ? null : _save,
+                  icon: _isSaving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.check_circle_outline_rounded),
+                  label: Text(_isSaving ? 'Đang lưu...' : 'Xác nhận & Lưu'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],

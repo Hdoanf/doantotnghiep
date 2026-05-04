@@ -231,17 +231,59 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context,
     List<HealthRecord> records,
   ) {
-    return Card(
-      color: AppTheme.accentLightColor,
-      child: ListTile(
-        leading: const Icon(Icons.auto_awesome, color: AppTheme.primaryColor),
-        title: const Text(
-          'Tạo báo cáo sức khỏe AI',
-          style: TextStyle(fontWeight: FontWeight.bold),
+    return GestureDetector(
+      onTap: () => _showAIReport(context, records),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: AppTheme.primaryGradient,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withValues(alpha: 0.25),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        subtitle: const Text('Phân tích tổng quát các chỉ số gần đây'),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () => _showAIReport(context, records),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 22),
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tạo báo cáo sức khỏe AI',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Phân tích tổng quát các chỉ số gần đây',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+          ],
+        ),
       ),
     );
   }
@@ -535,51 +577,51 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildQuickActions(BuildContext context) {
     return SizedBox(
-      height: 88,
+      height: 96,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         children: [
           _actionButton(
             context,
-            Icons.camera_alt_outlined,
+            Icons.camera_alt_rounded,
             'Chụp/Scan\nphiếu khám',
             AppTheme.primaryColor,
             const BloodTestInput(),
           ),
           _actionButton(
             context,
-            Icons.favorite_outline,
+            Icons.favorite_rounded,
             'Huyết áp\nnhịp tim',
-            const Color(0xFF7B8DB8),
+            AppTheme.criticalColor,
             const BloodPressureInput(),
           ),
           _actionButton(
             context,
-            Icons.analytics_outlined,
+            Icons.analytics_rounded,
             'Chỉ số\nsức khỏe',
-            const Color(0xFFB87B9E),
+            const Color(0xFF8B5CF6),
             const HealthMetricsScreen(),
           ),
           _actionButton(
             context,
-            Icons.monitor_weight_outlined,
+            Icons.monitor_weight_rounded,
             'Cơ thể\ncân nặng',
-            const Color(0xFF6B8BA4),
+            AppTheme.infoColor,
             const BodyMetricsInput(),
           ),
           _actionButton(
             context,
-            Icons.edit_note,
+            Icons.edit_note_rounded,
             'Nhật ký\nhôm nay',
-            const Color(0xFF8CB87B),
+            AppTheme.normalColor,
             const DailyJournalScreen(),
           ),
           _actionButton(
             context,
-            Icons.calendar_month_outlined,
+            Icons.calendar_month_rounded,
             'Lịch\nkhám',
-            const Color(0xFFB8A87B),
+            AppTheme.warningColor,
             const HealthCalendarScreen(),
           ),
         ],
@@ -598,28 +640,43 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: () =>
           Navigator.push(context, MaterialPageRoute(builder: (_) => screen)),
       child: Container(
-        width: 90,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.all(10),
+        width: 94,
+        margin: const EdgeInsets.symmetric(horizontal: 5),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.15)),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 6),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            const SizedBox(height: 8),
             Text(
               label,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: color,
+                color: AppTheme.textColor,
                 fontSize: 10,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'config/app_theme.dart';
 import 'services/auth_service.dart';
@@ -12,8 +13,12 @@ class HealthApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'HF Health',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.lightTheme,
+      theme: AppTheme.lightTheme.copyWith(
+        textTheme: GoogleFonts.interTextTheme(AppTheme.lightTheme.textTheme),
+      ),
+      darkTheme: AppTheme.darkTheme.copyWith(
+        textTheme: GoogleFonts.interTextTheme(AppTheme.darkTheme.textTheme),
+      ),
       themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
       home: const AuthWrapper(),
