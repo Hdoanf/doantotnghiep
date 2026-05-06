@@ -27,10 +27,10 @@ class _ScanScreenState extends State<ScanScreen> {
     try {
       // 1. OCR Step
       final text = await _ocrService.recognizeText(image);
-      
+
       // 2. AI Parsing Step
       final indicators = await _geminiService.parseOCRText(text);
-      
+
       if (mounted) {
         if (indicators.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -63,179 +63,311 @@ class _ScanScreenState extends State<ScanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Quét kết quả xét nghiệm')),
-      body: Center(
-        child: _isProcessing ? _buildProcessing() : _buildReady(),
-      ),
+      backgroundColor: Colors.black,
+      body: _isProcessing ? _buildProcessing() : _buildReady(),
     );
   }
 
   Widget _buildProcessing() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: AppTheme.accentLightColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Center(
-            child: SizedBox(
-              width: 36,
-              height: 36,
-              child: CircularProgressIndicator(
-                color: AppTheme.primaryColor,
-                strokeWidth: 3,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 20),
-        const Text(
-          'Đang xử lý bằng AI...',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textColor,
-          ),
-        ),
-        const SizedBox(height: 6),
-        const Text(
-          'Nhận diện và phân tích chỉ số',
-          style: TextStyle(
-            fontSize: 13,
-            color: AppTheme.mutedTextColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReady() {
-    return Padding(
-      padding: const EdgeInsets.all(28),
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Scan illustration
           Container(
-            width: 120,
-            height: 120,
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.circular(32),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.25),
-                  blurRadius: 32,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+              color: AppTheme.surfaceColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(
-              Icons.document_scanner_rounded,
-              size: 56,
+            child: const Center(
+              child: SizedBox(
+                width: 36,
+                height: 36,
+                child: CircularProgressIndicator(
+                  color: AppTheme.primaryColor,
+                  strokeWidth: 3,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            'Đang xử lý bằng AI...',
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 6),
           const Text(
-            'Quét phiếu xét nghiệm',
+            'Nhận diện và phân tích chỉ số',
             style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.textColor,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Tự động nhận diện chỉ số từ giấy xét nghiệm\nbằng AI và OCR thông minh',
-            textAlign: TextAlign.center,
-            style: TextStyle(
+              fontFamily: 'Manrope',
               fontSize: 14,
-              color: AppTheme.mutedTextColor,
-              height: 1.5,
+              color: Colors.white70,
             ),
-          ),
-          const SizedBox(height: 48),
-
-          // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: _actionCard(
-                  icon: Icons.camera_alt_rounded,
-                  label: 'Máy ảnh',
-                  subtitle: 'Chụp trực tiếp',
-                  onTap: () => _scanImage(ImageSource.camera),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: _actionCard(
-                  icon: Icons.photo_library_rounded,
-                  label: 'Thư viện',
-                  subtitle: 'Chọn ảnh có sẵn',
-                  onTap: () => _scanImage(ImageSource.gallery),
-                ),
-              ),
-            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _actionCard({
-    required IconData icon,
-    required String label,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildReady() {
+    return Stack(
+      children: [
+        // Simulated Camera Feed Background
+        Positioned.fill(
+          child: Container(
+            color: const Color(0xFF1A1A1A),
+            child: Opacity(
+              opacity: 0.4,
+              child: Image.network(
+                'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2000&auto=format&fit=crop',
+                fit: BoxFit.cover,
+                // Apply a grayscale/luminosity filter to mimic the design
+                color: Colors.white,
+                colorBlendMode: BlendMode.luminosity,
+              ),
+            ),
+          ),
+        ),
+
+        // Top Overlay Header
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 16,
+              right: 16,
+              bottom: 16,
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.6),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _iconButton(Icons.close, () {
+                  // Usually goes back, but maybe not in bottom nav
+                }),
+                _iconButton(Icons.flash_off, () {}),
+              ],
+            ),
+          ),
+        ),
+
+        // Main Viewfinder Area
+        Positioned.fill(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Instruction Text
+              Container(
+                margin: const EdgeInsets.only(bottom: 32),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Text(
+                  'Căn chỉnh phiếu xét nghiệm vào khung hình để quét',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 14,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              
+              // Scanning Guide Reticle
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: AspectRatio(
+                  aspectRatio: 3 / 4,
+                  child: Stack(
+                    children: [
+                      // Dark overlay outside reticle is hard to do cleanly without CustomPainter,
+                      // we'll just use the brackets.
+                      
+                      // Top Left
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: _cornerBracket(
+                          top: true,
+                          left: true,
+                        ),
+                      ),
+                      // Top Right
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: _cornerBracket(
+                          top: true,
+                          left: false,
+                        ),
+                      ),
+                      // Bottom Left
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        child: _cornerBracket(
+                          top: false,
+                          left: true,
+                        ),
+                      ),
+                      // Bottom Right
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: _cornerBracket(
+                          top: false,
+                          left: false,
+                        ),
+                      ),
+                      // Center Crosshair
+                      const Center(
+                        child: Opacity(
+                          opacity: 0.2,
+                          child: Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Bottom Controls
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            padding: const EdgeInsets.only(top: 32, bottom: 48, left: 24, right: 24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.8),
+                  Colors.black.withValues(alpha: 0.5),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Gallery Button
+                _bottomIconButton(
+                  icon: Icons.photo_library_outlined,
+                  onTap: () => _scanImage(ImageSource.gallery),
+                ),
+                
+                // Shutter Button
+                GestureDetector(
+                  onTap: () => _scanImage(ImageSource.camera),
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
+                    ),
+                    child: Center(
+                      child: Container(
+                        width: 66,
+                        height: 66,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                
+                // Switch Camera Button
+                _bottomIconButton(
+                  icon: Icons.cameraswitch_outlined,
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _iconButton(IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: AppTheme.primaryColor.withValues(alpha: 0.2),
-          ),
-          boxShadow: AppTheme.cardShadow,
+          color: Colors.white.withValues(alpha: 0.2),
+          shape: BoxShape.circle,
         ),
-        child: Column(
-          children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: AppTheme.accentLightColor,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: AppTheme.primaryColor, size: 26),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textColor,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppTheme.mutedTextColor,
-              ),
-            ),
-          ],
+        child: Icon(icon, color: Colors.white, size: 24),
+      ),
+    );
+  }
+
+  Widget _bottomIconButton({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.2),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        ),
+        child: Icon(icon, color: Colors.white, size: 28),
+      ),
+    );
+  }
+
+  Widget _cornerBracket({required bool top, required bool left}) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        border: Border(
+          top: top ? const BorderSide(color: AppTheme.primaryColor, width: 4) : BorderSide.none,
+          bottom: !top ? const BorderSide(color: AppTheme.primaryColor, width: 4) : BorderSide.none,
+          left: left ? const BorderSide(color: AppTheme.primaryColor, width: 4) : BorderSide.none,
+          right: !left ? const BorderSide(color: AppTheme.primaryColor, width: 4) : BorderSide.none,
+        ),
+        borderRadius: BorderRadius.only(
+          topLeft: top && left ? const Radius.circular(12) : Radius.zero,
+          topRight: top && !left ? const Radius.circular(12) : Radius.zero,
+          bottomLeft: !top && left ? const Radius.circular(12) : Radius.zero,
+          bottomRight: !top && !left ? const Radius.circular(12) : Radius.zero,
         ),
       ),
     );

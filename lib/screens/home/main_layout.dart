@@ -86,10 +86,10 @@ class _MainLayoutState extends State<MainLayout> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: selected
               ? BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                  color: AppTheme.primaryLightColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 )
               : null,
@@ -101,18 +101,18 @@ class _MainLayoutState extends State<MainLayout> {
                 child: Icon(
                   selected ? activeIcon : icon,
                   key: ValueKey(selected),
-                  color: selected ? AppTheme.primaryColor : AppTheme.mutedTextColor,
-                  size: selected ? 24 : 22,
+                  color: selected ? AppTheme.primaryLightColor : AppTheme.mutedTextColor,
+                  size: 24,
                 ),
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 4),
               Text(
                 label,
                 style: TextStyle(
-                  color: selected ? AppTheme.primaryColor : AppTheme.mutedTextColor,
+                  color: selected ? AppTheme.primaryLightColor : AppTheme.mutedTextColor,
                   fontSize: 10,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-                  letterSpacing: selected ? 0.2 : 0,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  fontFamily: 'Manrope',
                 ),
               ),
             ],

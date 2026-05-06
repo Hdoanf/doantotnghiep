@@ -55,14 +55,27 @@ class _DailyJournalScreenState extends State<DailyJournalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nhật ký hôm nay')),
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text(
+          'Nhật ký hôm nay',
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            color: AppTheme.primaryColor,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        backgroundColor: AppTheme.surfaceColor,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: AppTheme.textColor),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           _moodSection(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           _noteSection(),
-          const SizedBox(height: 28),
+          const SizedBox(height: 32),
           _saveBtn(),
         ]),
       ),
@@ -71,15 +84,30 @@ class _DailyJournalScreenState extends State<DailyJournalScreen> {
 
   Widget _moodSection() {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor, borderRadius: BorderRadius.circular(18),
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppTheme.borderColor.withValues(alpha: 0.4)),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Bạn cảm thấy thế nào?', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textColor)),
-        const SizedBox(height: 16),
+        const Text(
+          'Bạn cảm thấy thế nào?',
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: AppTheme.textColor,
+          ),
+        ),
+        const SizedBox(height: 20),
         Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: _moods.map(_moodBtn).toList()),
       ]),
     );
@@ -93,17 +121,27 @@ class _DailyJournalScreenState extends State<DailyJournalScreen> {
     return GestureDetector(
       onTap: () => setState(() => _mood = label),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200), width: 56,
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        duration: const Duration(milliseconds: 200),
+        width: 60,
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: sel ? color.withValues(alpha: 0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: sel ? color.withValues(alpha: 0.4) : AppTheme.borderColor.withValues(alpha: 0.3), width: sel ? 1.5 : 1),
+          color: sel ? color.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: sel ? color.withValues(alpha: 0.5) : AppTheme.borderColor.withValues(alpha: 0.3), width: sel ? 2 : 1),
         ),
         child: Column(children: [
-          Text(emoji, style: TextStyle(fontSize: sel ? 26 : 22)),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(fontSize: 10, fontWeight: sel ? FontWeight.w700 : FontWeight.w400, color: sel ? color : AppTheme.mutedTextColor)),
+          Text(emoji, style: TextStyle(fontSize: sel ? 28 : 24)),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontSize: 10,
+              fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
+              color: sel ? color : AppTheme.secondaryTextColor,
+            ),
+          ),
         ]),
       ),
     );
@@ -111,22 +149,43 @@ class _DailyJournalScreenState extends State<DailyJournalScreen> {
 
   Widget _noteSection() {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor, borderRadius: BorderRadius.circular(18),
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppTheme.borderColor.withValues(alpha: 0.4)),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Ghi chú sức khỏe', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textColor)),
-        const SizedBox(height: 12),
+        const Text(
+          'Ghi chú sức khỏe',
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: AppTheme.textColor,
+          ),
+        ),
+        const SizedBox(height: 16),
         TextField(
-          controller: _noteController, minLines: 6, maxLines: 10,
+          controller: _noteController,
+          minLines: 6,
+          maxLines: 10,
+          style: const TextStyle(fontFamily: 'Manrope', fontSize: 16, height: 1.5),
           decoration: InputDecoration(
-            hintText: 'Triệu chứng, thuốc đã uống, ăn uống, vận động...',
-            filled: true, fillColor: AppTheme.backgroundColor,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppTheme.borderColor.withValues(alpha: 0.4))),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppTheme.borderColor.withValues(alpha: 0.4))),
+            hintText: 'Nhập triệu chứng, loại thuốc đã uống, hoặc thông tin sức khỏe khác...',
+            hintStyle: const TextStyle(color: AppTheme.mutedTextColor),
+            filled: true,
+            fillColor: AppTheme.backgroundColor,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppTheme.borderColor.withValues(alpha: 0.4))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppTheme.borderColor.withValues(alpha: 0.4))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2)),
           ),
         ),
       ]),
@@ -134,16 +193,30 @@ class _DailyJournalScreenState extends State<DailyJournalScreen> {
   }
 
   Widget _saveBtn() {
-    return SizedBox(width: double.infinity, height: 54, child: DecoratedBox(
-      decoration: BoxDecoration(gradient: AppTheme.primaryGradient, borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6))]),
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
       child: ElevatedButton.icon(
         onPressed: _isSaving ? null : _save,
-        icon: _isSaving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.save_outlined),
-        label: Text(_isSaving ? 'Đang lưu...' : 'Lưu nhật ký'),
-        style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent, foregroundColor: Colors.white,
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+        icon: _isSaving
+            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : const Icon(Icons.save_rounded),
+        label: Text(
+          _isSaving ? 'Đang lưu...' : 'Lưu nhật ký',
+          style: const TextStyle(
+            fontFamily: 'Manrope',
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.primaryColor,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
       ),
-    ));
+    );
   }
 }

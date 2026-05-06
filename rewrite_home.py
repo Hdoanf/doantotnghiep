@@ -1,24 +1,12 @@
-import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../config/app_theme.dart';
-import '../../services/auth_service.dart';
-import '../../services/firestore_service.dart';
-import '../../services/gemini_service.dart';
-import '../../models/health_record.dart';
-import '../input/blood_test_input.dart';
-import '../input/vitals_input.dart';
-import '../input/body_metrics_input.dart';
-import '../metrics/health_metrics_screen.dart';
+import re
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+with open('lib/screens/home/home_screen.dart', 'r') as f:
+    content = f.read()
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
+# We need to completely rewrite the _HomeScreenState build method and helper methods to match the new UI.
+# Let's replace the whole _HomeScreenState class!
 
-
+new_state_class = """
 class _HomeScreenState extends State<HomeScreen> {
   final _firestoreService = FirestoreService();
   Stream<List<HealthRecord>>? _recordsStream;
@@ -40,11 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: _buildAppBar(user),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showInputMenu(context),
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
       body: StreamBuilder<List<HealthRecord>>(
         stream: _streamForUser(user.uid),
         builder: (context, snapshot) {
@@ -53,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Không tải được dữ liệu.\n${snapshot.error}',
+                  'Không tải được dữ liệu.\\n${snapshot.error}',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -782,8 +765,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _formattedAiReport(String report) {
     final lines = report
-        .split('\n')
-        .map((line) => line.trim().replaceFirst(RegExp(r'^[-*#\s]+'), ''))
+        .split('\\n')
+        .map((line) => line.trim().replaceFirst(RegExp(r'^[-*#\\s]+'), ''))
         .where((line) => line.isNotEmpty)
         .toList();
 
@@ -878,70 +861,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showInputMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Nhập dữ liệu sức khỏe',
-              style: TextStyle(
-                fontFamily: 'Manrope',
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textColor,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppTheme.primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.favorite, color: AppTheme.primaryColor),
-              ),
-              title: const Text('Nhập Sinh Tồn (Huyết áp, Nhịp tim)', style: TextStyle(fontWeight: FontWeight.w600)),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const VitalsInput()));
-              },
-            ),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppTheme.accentColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.monitor_weight, color: AppTheme.accentColor),
-              ),
-              title: const Text('Nhập Chỉ Số Cơ Thể (Cân nặng, Chiều cao)', style: TextStyle(fontWeight: FontWeight.w600)),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const BodyMetricsInput()));
-              },
-            ),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppTheme.warningColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.science, color: AppTheme.warningColor),
-              ),
-              title: const Text('Nhập Xét Nghiệm Máu (Đường huyết, Mỡ máu)', style: TextStyle(fontWeight: FontWeight.w600)),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const BloodTestInput()));
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   String _statusFor(double? value, {required double min, required double max}) {
     if (value == null) return 'Chưa có dữ liệu';
     if (value < min) return 'Thấp';
@@ -989,3 +908,11 @@ class _SparklinePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+"""
+
+start_index = content.find("class _HomeScreenState extends State<HomeScreen> {")
+
+with open('lib/screens/home/home_screen.dart', 'w') as f:
+    f.write(content[:start_index])
+    f.write(new_state_class)
+

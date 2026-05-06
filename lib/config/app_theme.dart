@@ -2,55 +2,55 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class AppTheme {
-  // ─── Medical-Grade Color Palette ───
-  // Primary: Clinical Teal — calm, trustworthy, used in hospitals worldwide
-  static const primaryColor = Color(0xFF0D9488);       // Teal 600
-  static const primaryDarkColor = Color(0xFF0F766E);    // Teal 700
-  static const primaryLightColor = Color(0xFF14B8A6);   // Teal 500
+  // ─── HealthPulse VN Color Palette (Blue Theme) ───
+  static const primaryColor = Color(0xFF00408B);
+  static const primaryDarkColor = Color(0xFF001A41);
+  static const primaryLightColor = Color(0xFF0057B8);
 
   // Semantic: Health status colors
-  static const normalColor = Color(0xFF10B981);         // Emerald 500 — normal/safe
-  static const warningColor = Color(0xFFF59E0B);        // Amber 500 — caution
-  static const criticalColor = Color(0xFFEF4444);       // Red 500 — critical/danger
-  static const infoColor = Color(0xFF3B82F6);           // Blue 500 — informational
+  static const normalColor = Color(0xFF0057B8); // Normal (Blue)
+  static const warningColor = Color(0xFF752B00);
+  static const criticalColor = Color(0xFFBA1A1A); // Critical (Error Red)
+  static const infoColor = Color(0xFF0057B8); // Blue 500 — informational
 
   // Neutral palette
-  static const backgroundColor = Color(0xFFF0FDFA);     // Teal 50 — soft clinical bg
-  static const surfaceColor = Color(0xFFFFFFFF);
-  static const surface2Color = Color(0xFFF0F9FF);       // Sky 50 — secondary surface
+  static const backgroundColor = Color(0xFFF9F9FF); // background
+  static const surfaceColor = Color(0xFFFFFFFF); // surface-container-lowest
+  static const surface2Color = Color(0xFFEDEDF6); // surface-container
   static const cardColor = Color(0xFFFFFFFF);
 
   // Border & Divider
-  static const borderColor = Color(0xFFE2E8F0);         // Slate 200
-  static const dividerColor = Color(0xFFF1F5F9);        // Slate 100
+  static const borderColor = Color(0xFFE1E2EB); // surface-variant
+  static const dividerColor = Color(0xFFEDEDF6); // surface-container
 
   // Text hierarchy
-  static const textColor = Color(0xFF0F172A);            // Slate 900
-  static const secondaryTextColor = Color(0xFF475569);   // Slate 600
-  static const mutedTextColor = Color(0xFF94A3B8);       // Slate 400
+  static const textColor = Color(0xFF191C22); // on-background
+  static const secondaryTextColor = Color(0xFF424752); // on-surface-variant
+  static const mutedTextColor = Color(0xFF727784); // outline
 
   // Light accent fills for cards/badges
-  static const accentLightColor = Color(0xFFF0FDFA);     // Teal 50
-  static const infoLightColor = Color(0xFFEFF6FF);       // Blue 50
-  static const warningLightColor = Color(0xFFFFFBEB);    // Amber 50
-  static const criticalLightColor = Color(0xFFFEF2F2);   // Red 50
-  static const normalLightColor = Color(0xFFECFDF5);     // Emerald 50
+  static const accentColor = Color(0xFF14B8A6); // Teal 500
+  static const accentLightColor = Color(0xFFDBE3F1); // secondary-container
+  static const infoLightColor = Color(0xFFADC7FF); // primary-fixed-dim
+  static const warningLightColor = Color(0xFFFFDBCC); // tertiary-fixed
+  static const criticalLightColor = Color(0xFFFFDAD6); // error-container
+  static const normalLightColor = Color(0xFFD8E2FF); // primary-fixed
 
   // Gradients for premium feel
   static const primaryGradient = LinearGradient(
-    colors: [Color(0xFF0D9488), Color(0xFF06B6D4)],      // Teal → Cyan
+    colors: [Color(0xFF00408B), Color(0xFF0057B8)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const accentGradient = LinearGradient(
-    colors: [Color(0xFF14B8A6), Color(0xFF22D3EE)],      // Teal → Cyan lighter
+    colors: [Color(0xFF14B8A6), Color(0xFF22D3EE)], // Teal → Cyan lighter
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const warmGradient = LinearGradient(
-    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],      // Indigo → Violet
+    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)], // Indigo → Violet
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -85,8 +85,8 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: primaryColor,
       primary: primaryColor,
-      secondary: const Color(0xFF06B6D4),    // Cyan 500
-      tertiary: const Color(0xFF8B5CF6),     // Violet 500
+      secondary: const Color(0xFF06B6D4), // Cyan 500
+      tertiary: const Color(0xFF8B5CF6), // Violet 500
       surface: surfaceColor,
       error: criticalColor,
       brightness: Brightness.light,
@@ -153,9 +153,7 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           letterSpacing: 0.1,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -168,9 +166,7 @@ class AppTheme {
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
@@ -218,17 +214,13 @@ class AppTheme {
         fontWeight: FontWeight.w500,
       ),
       side: BorderSide(color: borderColor.withValues(alpha: 0.5)),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: textColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       contentTextStyle: const TextStyle(
         fontFamily: 'Inter',
         color: Colors.white,

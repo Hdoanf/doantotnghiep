@@ -34,7 +34,20 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
     if (user == null) return const SizedBox.shrink();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Lịch sức khỏe')),
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text(
+          'Lịch sức khỏe',
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            color: AppTheme.primaryColor,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        backgroundColor: AppTheme.surfaceColor,
+        elevation: 0,
+        centerTitle: false,
+      ),
       body: StreamBuilder<List<HealthRecord>>(
         stream: _streamForUser(user.uid),
         builder: (context, snapshot) {
@@ -43,8 +56,9 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Không tải được dữ liệu Firestore.\n${snapshot.error}',
+                  'Không tải được dữ liệu.\n${snapshot.error}',
                   textAlign: TextAlign.center,
+                  style: const TextStyle(fontFamily: 'Manrope'),
                 ),
               ),
             );
@@ -57,17 +71,17 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
             padding: const EdgeInsets.all(16),
             children: [
               _todayCard(context, records),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               const Text(
                 'Hoạt động gần đây',
                 style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Manrope',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
                   color: AppTheme.textColor,
-                  letterSpacing: -0.2,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               if (grouped.isEmpty)
                 _emptyState()
               else
@@ -90,14 +104,14 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
     }).length;
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
-        borderRadius: BorderRadius.circular(18),
+        color: AppTheme.primaryColor,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.25),
-            blurRadius: 20,
+            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+            blurRadius: 16,
             offset: const Offset(0, 8),
           ),
         ],
@@ -105,19 +119,19 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
               Icons.calendar_month_rounded,
               color: Colors.white,
-              size: 24,
+              size: 28,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,17 +139,20 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                 Text(
                   DateFormat('EEEE, d/M/yyyy', 'vi').format(DateTime.now()),
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontFamily: 'Manrope',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   '$todayCount bản ghi trong hôm nay',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 13,
+                    fontFamily: 'Manrope',
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -147,16 +164,23 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
               MaterialPageRoute(builder: (_) => const BloodPressureInput()),
             ),
             child: Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: const Icon(
                 Icons.add_rounded,
-                color: Colors.white,
-                size: 22,
+                color: AppTheme.primaryColor,
+                size: 26,
               ),
             ),
           ),
@@ -172,25 +196,26 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
         child: Column(
           children: [
             Container(
-              width: 64,
-              height: 64,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 color: AppTheme.accentLightColor,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(24),
               ),
               child: const Icon(
                 Icons.event_available_rounded,
                 color: AppTheme.primaryColor,
-                size: 30,
+                size: 40,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             const Text(
               'Chưa có hoạt động sức khỏe',
               style: TextStyle(
-                fontSize: 14,
+                fontFamily: 'Manrope',
+                fontSize: 16,
                 color: AppTheme.mutedTextColor,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
@@ -201,26 +226,28 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
 
   Widget _dayGroup(DateTime day, List<HealthRecord> records) {
     return Padding(
-      padding: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.only(top: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppTheme.surface2Color,
-              borderRadius: BorderRadius.circular(8),
+              color: AppTheme.surfaceColor,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppTheme.borderColor.withValues(alpha: 0.4)),
             ),
             child: Text(
               DateFormat('dd/MM/yyyy').format(day),
               style: const TextStyle(
+                fontFamily: 'Manrope',
                 color: AppTheme.secondaryTextColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           ...records.map(_recordTile),
         ],
       ),
@@ -231,27 +258,34 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
     final typeColor = _typeColor(record);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.borderColor.withValues(alpha: 0.4),
+          color: typeColor.withValues(alpha: 0.1),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: typeColor.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               color: typeColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(_typeIcon(record), color: typeColor, size: 18),
+            child: Icon(_typeIcon(record), color: typeColor, size: 22),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,16 +293,20 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
                 Text(
                   _typeLabel(record),
                   style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Manrope',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.textColor,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   DateFormat('HH:mm').format(record.date),
                   style: const TextStyle(
+                    fontFamily: 'Manrope',
                     color: AppTheme.mutedTextColor,
-                    fontSize: 12,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -276,17 +314,18 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
           ),
           if (record.indicators.isNotEmpty)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: typeColor.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 '${record.indicators.length} chỉ số',
                 style: TextStyle(
+                  fontFamily: 'Manrope',
                   color: typeColor,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -310,12 +349,12 @@ class _HealthCalendarScreenState extends State<HealthCalendarScreen> {
 
   Color _typeColor(HealthRecord record) {
     if (record.indicators.isEmpty && record.note != null) {
-      return AppTheme.normalColor;
+      return AppTheme.primaryColor;
     }
     return switch (record.type) {
-      RecordType.bloodTest => AppTheme.criticalColor,
-      RecordType.vitals => AppTheme.warningColor,
-      RecordType.bodyMetrics => AppTheme.infoColor,
+      RecordType.bloodTest => Colors.redAccent,
+      RecordType.vitals => Colors.orangeAccent,
+      RecordType.bodyMetrics => AppTheme.primaryColor,
     };
   }
 

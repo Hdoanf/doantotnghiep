@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
-import '../../config/health_constants.dart';
 import '../../models/health_record.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
-import '../../widgets/indicator_field.dart';
 
 class BodyMetricsInput extends StatefulWidget {
   const BodyMetricsInput({super.key});
@@ -15,28 +13,23 @@ class BodyMetricsInput extends StatefulWidget {
 }
 
 class _BodyMetricsInputState extends State<BodyMetricsInput> {
-  final Map<String, TextEditingController> _controllers = {};
+  final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _heightController = TextEditingController();
+  
   bool _isSaving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    HealthConstants.bodyIndicators.forEach((key, value) {
-      _controllers[key] = TextEditingController();
-    });
-  }
 
   void _save() async {
     final user = context.read<AuthService>().user;
     if (user == null) return;
 
     final indicators = <String, double>{};
-    _controllers.forEach((key, controller) {
-      if (controller.text.isNotEmpty) {
-        final val = double.tryParse(controller.text);
-        if (val != null) indicators[key] = val;
-      }
-    });
+    
+    if (_weightController.text.isNotEmpty) {
+      indicators['weight'] = double.tryParse(_weightController.text) ?? 0;
+    }
+    if (_heightController.text.isNotEmpty) {
+      indicators['height'] = double.tryParse(_heightController.text) ?? 0;
+    }
 
     if (indicators.isEmpty) return;
 
@@ -63,79 +56,158 @@ class _BodyMetricsInputState extends State<BodyMetricsInput> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nhập chỉ số cơ thể')),
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppTheme.secondaryTextColor),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text('Chỉ Số Cơ Thể', style: TextStyle(color: AppTheme.accentColor, fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'Manrope')),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppTheme.infoLightColor,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppTheme.infoColor.withValues(alpha: 0.15)),
-              ),
+            const Text('Nhập chỉ số cơ thể', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, fontFamily: 'Manrope', color: AppTheme.textColor)),
+            const SizedBox(height: 8),
+            const Text('Vui lòng nhập các chỉ số sức khỏe của bạn để hệ thống theo dõi.', style: TextStyle(fontSize: 16, color: AppTheme.secondaryTextColor)),
+            const SizedBox(height: 24),
+            
+            // Cân nặng
+            _buildBentoCard(
+              icon: Icons.monitor_weight,
+              iconColor: AppTheme.accentColor,
+              title: 'Cân nặng',
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Container(
-                    width: 36, height: 36,
-                    decoration: BoxDecoration(
-                      color: AppTheme.infoColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.monitor_weight_rounded, color: AppTheme.infoColor, size: 18),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Chỉ số cơ thể', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.textColor)),
-                        Text('Cân nặng, chiều cao', style: TextStyle(fontSize: 12, color: AppTheme.secondaryTextColor)),
+                        const Text('CÂN NẶNG HIỆN TẠI', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.secondaryTextColor, letterSpacing: 0.5)),
+                        const SizedBox(height: 4),
+                        TextField(
+                          controller: _weightController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, fontFamily: 'Manrope'),
+                          decoration: InputDecoration(
+                            hintText: '65.5',
+                            filled: true,
+                            fillColor: AppTheme.backgroundColor,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                          ),
+                        ),
                       ],
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: Text('kg', style: TextStyle(fontSize: 14, color: AppTheme.secondaryTextColor)),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-            ...HealthConstants.bodyIndicators.entries.map((entry) {
-              final config = entry.value;
-              return IndicatorField(
-                label: config['name'],
-                unit: config['unit'],
-                min: config['min'],
-                max: config['max'],
-                controller: _controllers[entry.key]!,
-              );
-            }),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            
+            // Chiều cao
+            _buildBentoCard(
+              icon: Icons.height,
+              iconColor: AppTheme.infoColor,
+              title: 'Chiều cao',
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('CHIỀU CAO', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.secondaryTextColor, letterSpacing: 0.5)),
+                        const SizedBox(height: 4),
+                        TextField(
+                          controller: _heightController,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, fontFamily: 'Manrope'),
+                          decoration: InputDecoration(
+                            hintText: '170',
+                            filled: true,
+                            fillColor: AppTheme.backgroundColor,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: Text('cm', style: TextStyle(fontSize: 14, color: AppTheme.secondaryTextColor)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            
             SizedBox(
               width: double.infinity,
-              height: 54,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: AppTheme.primaryGradient,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6))],
-                ),
-                child: ElevatedButton.icon(
-                  onPressed: _isSaving ? null : _save,
-                  icon: _isSaving
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Icon(Icons.save_outlined),
-                  label: Text(_isSaving ? 'Đang lưu...' : 'Lưu chỉ số'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent, shadowColor: Colors.transparent, foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
+              child: ElevatedButton.icon(
+                onPressed: _isSaving ? null : _save,
+                icon: _isSaving
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Icon(Icons.save),
+                label: Text(_isSaving ? 'Đang lưu...' : 'Lưu kết quả', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Manrope')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 4,
                 ),
               ),
             ),
+            const SizedBox(height: 32),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBentoCard({required IconData icon, required Color iconColor, required String title, required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.mutedTextColor.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: iconColor.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: iconColor, size: 24),
+              const SizedBox(width: 8),
+              Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, fontFamily: 'Manrope', color: AppTheme.textColor)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          child,
+        ],
       ),
     );
   }

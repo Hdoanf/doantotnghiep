@@ -12,58 +12,74 @@ class RecordDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chi tiết bản ghi')),
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text(
+          'Chi tiết bản ghi',
+          style: TextStyle(
+            fontFamily: 'Manrope',
+            color: AppTheme.primaryColor,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        backgroundColor: AppTheme.surfaceColor,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: AppTheme.textColor),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             const Text(
-              'Các chỉ số',
+              'Các chỉ số chi tiết',
               style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
+                fontFamily: 'Manrope',
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
                 color: AppTheme.textColor,
-                letterSpacing: -0.2,
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             ...record.indicators.entries.map(
               (entry) => _buildIndicatorTile(entry.key, entry.value),
             ),
             if (record.note != null && record.note!.isNotEmpty) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               const Text(
                 'Ghi chú',
                 style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Manrope',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
                   color: AppTheme.textColor,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.surface2Color,
-                  borderRadius: BorderRadius.circular(14),
+                  color: AppTheme.surfaceColor,
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppTheme.borderColor.withValues(alpha: 0.3),
+                    color: AppTheme.borderColor.withValues(alpha: 0.5),
                   ),
                 ),
                 child: Text(
                   record.note!,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontFamily: 'Manrope',
+                    fontSize: 15,
                     color: AppTheme.secondaryTextColor,
-                    height: 1.5,
+                    height: 1.6,
                   ),
                 ),
               ),
             ],
+            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -74,37 +90,35 @@ class RecordDetailScreen extends StatelessWidget {
     final typeColor = _getTypeColor(record.type);
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            typeColor.withValues(alpha: 0.08),
-            typeColor.withValues(alpha: 0.03),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: typeColor.withValues(alpha: 0.15),
-        ),
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: typeColor.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: typeColor.withValues(alpha: 0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
-              color: typeColor.withValues(alpha: 0.12),
+              color: typeColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
               _getTypeIcon(record.type),
               color: typeColor,
-              size: 28,
+              size: 32,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,26 +126,27 @@ class RecordDetailScreen extends StatelessWidget {
                 Text(
                   _getTypeName(record.type),
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontFamily: 'Manrope',
+                    fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: AppTheme.textColor,
-                    letterSpacing: -0.2,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     const Icon(
                       Icons.access_time_rounded,
-                      size: 14,
-                      color: AppTheme.mutedTextColor,
+                      size: 16,
+                      color: AppTheme.secondaryTextColor,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 6),
                     Text(
                       DateFormat('dd/MM/yyyy HH:mm').format(record.date),
                       style: const TextStyle(
-                        color: AppTheme.mutedTextColor,
-                        fontSize: 13,
+                        fontFamily: 'Manrope',
+                        color: AppTheme.secondaryTextColor,
+                        fontSize: 14,
                       ),
                     ),
                   ],
@@ -140,18 +155,32 @@ class RecordDetailScreen extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               color: typeColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
-              '${record.indicators.length}',
-              style: TextStyle(
-                color: typeColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
+            child: Column(
+              children: [
+                Text(
+                  '${record.indicators.length}',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    color: typeColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  'Chỉ số',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    color: typeColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -166,26 +195,26 @@ class RecordDetailScreen extends StatelessWidget {
     final min = config['min'];
     final max = config['max'];
 
-    Color statusColor = AppTheme.normalColor;
+    Color statusColor = AppTheme.primaryColor;
     String statusText = 'Bình thường';
-    IconData statusIcon = Icons.check_circle_outline_rounded;
+    IconData statusIcon = Icons.check_circle;
 
     if (min != null && value < min) {
-      statusColor = AppTheme.warningColor;
+      statusColor = Colors.orangeAccent;
       statusText = 'Thấp';
       statusIcon = Icons.arrow_downward_rounded;
     } else if (max != null && value > max) {
-      statusColor = AppTheme.criticalColor;
+      statusColor = Colors.redAccent;
       statusText = 'Cao';
       statusIcon = Icons.arrow_upward_rounded;
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: statusColor.withValues(alpha: 0.2),
         ),
@@ -193,14 +222,14 @@ class RecordDetailScreen extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 8,
-            height: 42,
+            width: 4,
+            height: 48,
             decoration: BoxDecoration(
               color: statusColor,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,17 +237,20 @@ class RecordDetailScreen extends StatelessWidget {
                 Text(
                   name,
                   style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontFamily: 'Manrope',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
                     color: AppTheme.textColor,
                   ),
                 ),
+                const SizedBox(height: 4),
                 if (min != null && max != null)
                   Text(
-                    'Khoảng chuẩn: $min – $max $unit',
+                    'Chuẩn: $min – $max $unit',
                     style: const TextStyle(
-                      fontSize: 11,
-                      color: AppTheme.mutedTextColor,
+                      fontFamily: 'Manrope',
+                      fontSize: 13,
+                      color: AppTheme.secondaryTextColor,
                     ),
                   ),
               ],
@@ -227,25 +259,45 @@ class RecordDetailScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                '$value $unit',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: statusColor,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '$value',
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: statusColor,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      unit,
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(statusIcon, size: 13, color: statusColor),
-                  const SizedBox(width: 3),
+                  Icon(statusIcon, size: 14, color: statusColor),
+                  const SizedBox(width: 4),
                   Text(
                     statusText,
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Manrope',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
                       color: statusColor,
                     ),
                   ),
@@ -267,9 +319,9 @@ class RecordDetailScreen extends StatelessWidget {
 
   Color _getTypeColor(RecordType type) {
     switch (type) {
-      case RecordType.bloodTest: return AppTheme.criticalColor;
-      case RecordType.vitals: return AppTheme.warningColor;
-      case RecordType.bodyMetrics: return AppTheme.infoColor;
+      case RecordType.bloodTest: return Colors.redAccent;
+      case RecordType.vitals: return Colors.orangeAccent;
+      case RecordType.bodyMetrics: return AppTheme.primaryColor;
     }
   }
 
