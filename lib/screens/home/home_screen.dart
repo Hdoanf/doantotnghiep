@@ -27,6 +27,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Stream<List<HealthRecord>>? _recordsStream;
   String? _recordsUserId;
 
+  @override
+  void initState() {
+    super.initState();
+    // Tự động kết nối lại với thiết bị cũ nếu có
+    BleService().autoConnect();
+  }
+
   Stream<List<HealthRecord>> _streamForUser(String userId) {
     if (_recordsUserId != userId) {
       _recordsUserId = userId;
@@ -289,6 +296,90 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Column(
       children: [
+        // Heart Rate Live Card (New)
+        StreamBuilder<Map<String, dynamic>>(
+          stream: BleService().dataStream,
+          builder: (context, snapshot) {
+            final data = snapshot.data;
+            final bpm = data?['bpm'] ?? 0.0;
+            final hasData = bpm > 0;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppTheme.primaryColor, AppTheme.primaryColor.withValues(alpha: 0.8)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: InkWell(
+                onTap: () {
+                  if (BleService().connectedDevice != null) {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const LiveVitalsScreen()));
+                  } else {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const BleDeviceScanScreen()));
+                  }
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.favorite, color: Colors.white, size: 32),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Nhịp tim trực tiếp',
+                            style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                hasData ? bpm.toStringAsFixed(0) : '--',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Manrope',
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'BPM',
+                                style: TextStyle(color: Colors.white70, fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
         // BP Card (span 2)
         Container(
           width: double.infinity,

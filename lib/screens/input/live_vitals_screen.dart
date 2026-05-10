@@ -85,9 +85,7 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
 
   @override
   void dispose() {
-    // We don't necessarily want to disconnect here if the user just navigates back,
-    // but for this app flow, we'll disconnect to be safe.
-    _bleService.disconnect();
+    // Để kết nối duy trì cho màn hình Home, chúng ta không ngắt kết nối ở đây
     super.dispose();
   }
 

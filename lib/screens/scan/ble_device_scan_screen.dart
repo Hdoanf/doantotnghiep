@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 import '../../config/app_theme.dart';
 import '../../services/ble_service.dart';
 import '../input/live_vitals_screen.dart';
@@ -26,7 +26,7 @@ class _BleDeviceScanScreenState extends State<BleDeviceScanScreen> {
     debugPrint("UI: Starting scan process...");
     
     // Check if Location Service is enabled (Crucial for Android BLE)
-    bool isLocationEnabled = await Permission.location.serviceStatus.isEnabled;
+    bool isLocationEnabled = await ph.Permission.location.serviceStatus.isEnabled;
     debugPrint("UI: Location services enabled: $isLocationEnabled");
     if (!isLocationEnabled) {
       if (mounted) {
@@ -129,7 +129,6 @@ class _BleDeviceScanScreenState extends State<BleDeviceScanScreen> {
         initialData: const [],
         builder: (context, snapshot) {
           final results = snapshot.data ?? [];
-          // Filter out devices with no name if desired, or just show all
           if (results.isEmpty) {
             return Center(
               child: Column(

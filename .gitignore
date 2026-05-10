@@ -47,6 +47,16 @@ app.*.map.json
 # ESP32 and Arduino related
 arduino-cli
 /build_esp32/
+flash_esp32.sh
+
+# Logs
+flutter_logs.txt
+flutter_logs_new.txt
+*.log
+
+# ESP32 and Arduino related
+arduino-cli
+/build_esp32/
 /health_esp32/build/
 flash_esp32.sh
 
