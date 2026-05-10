@@ -1,0 +1,25 @@
+Launching lib/main.dart on 23049PCD8G in debug mode...
+Running Gradle task 'assembleDebug'...                          
+lib/screens/scan/ble_device_scan_screen.dart:29:36: Error: The getter 'Permission' isn't defined for the type '_BleDeviceScanScreenState'.
+ - '_BleDeviceScanScreenState' is from 'package:hf_health/screens/scan/ble_device_scan_screen.dart' ('lib/screens/scan/ble_device_scan_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'Permission'.
+    bool isLocationEnabled = await Permission.location.serviceStatus.isEnabled;
+                                   ^^^^^^^^^^
+Target kernel_snapshot_program failed: Exception
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileFlutterBuildDebug'.
+> Process 'command '/home/doanchim/flutter/bin/flutter'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 5s
+Running Gradle task 'assembleDebug'...                              6.1s
+Error: Gradle task assembleDebug failed with exit code 1

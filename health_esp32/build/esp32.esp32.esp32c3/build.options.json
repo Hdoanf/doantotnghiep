@@ -1,0 +1,9 @@
+{
+  "additionalFiles": "",
+  "compiler.optimization_flags": "-Os",
+  "customBuildProperties": "",
+  "fqbn": "esp32:esp32:esp32c3",
+  "hardwareFolders": "/home/doanchim/.arduino15/packages/esp32/hardware/esp32/3.3.8,/home/doanchim/.arduino15/packages/esp32/hardware/esp32/3.3.8",
+  "otherLibrariesFolders": "/home/doanchim/Arduino/libraries",
+  "sketchLocation": "/home/doanchim/doantotnhiep/doantotnghiep/health_esp32"
+}

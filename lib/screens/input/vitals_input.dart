@@ -4,6 +4,7 @@ import '../../config/app_theme.dart';
 import '../../models/health_record.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
+import '../scan/ble_device_scan_screen.dart';
 
 class VitalsInput extends StatefulWidget {
   const VitalsInput({super.key});
@@ -82,6 +83,37 @@ class _VitalsInputState extends State<VitalsInput> {
             const Text('Nhập chỉ số sinh tồn', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, fontFamily: 'Manrope', color: AppTheme.textColor)),
             const SizedBox(height: 8),
             const Text('Vui lòng nhập các chỉ số sức khỏe của bạn để hệ thống theo dõi.', style: TextStyle(fontSize: 16, color: AppTheme.secondaryTextColor)),
+            const SizedBox(height: 24),
+
+            // Bluetooth Connection Button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BleDeviceScanScreen()),
+                ),
+                icon: const Icon(Icons.bluetooth),
+                label: const Text('Kết nối thiết bị đo (Bluetooth)', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Manrope')),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primaryColor,
+                  side: const BorderSide(color: AppTheme.primaryColor, width: 2),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Row(
+              children: [
+                Expanded(child: Divider()),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text('HOẶC NHẬP TAY', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppTheme.mutedTextColor, letterSpacing: 1.2)),
+                ),
+                Expanded(child: Divider()),
+              ],
+            ),
             const SizedBox(height: 24),
             
             // Huyết áp

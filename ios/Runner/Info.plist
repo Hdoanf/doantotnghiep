@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Ứng dụng cần truy cập Bluetooth để kết nối với thiết bị đo nhịp tim.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Ứng dụng cần truy cập Bluetooth để kết nối với thiết bị đo nhịp tim.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Ứng dụng cần quyền vị trí để quét tìm thiết bị Bluetooth.</string>
 </dict>
 </plist>

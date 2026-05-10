@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../services/auth_service.dart';
+import '../../services/ble_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/gemini_service.dart';
 import '../../models/health_record.dart';
 import '../input/blood_test_input.dart';
 import '../input/vitals_input.dart';
+import '../input/live_vitals_screen.dart';
+import '../scan/ble_device_scan_screen.dart';
 import '../input/body_metrics_input.dart';
 import '../metrics/health_metrics_screen.dart';
 
