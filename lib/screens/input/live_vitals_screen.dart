@@ -19,9 +19,11 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
   final BleService _bleService = BleService();
   final List<FlSpot> _rawSpots = [];
   double _lastX = 0;
-
+  
   double _currentBpm = 0;
   double _currentSpO2 = 0;
+  double _currentSys = 0;
+  double _currentDia = 0;
   bool _isSaving = false;
 
   @override
@@ -30,13 +32,15 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
     _bleService.dataStream.listen((data) {
       if (mounted) {
         setState(() {
-          _currentBpm = (data['bpm'] as num?)?.toDouble() ?? 0.0;
-          _currentSpO2 = (data['spo2'] as num?)?.toDouble() ?? 0.0;
-
-          double raw = (data['raw'] as num?)?.toDouble() ?? 0.0;
+          _currentBpm = data['bpm'] ?? 0.0;
+          _currentSpO2 = data['spo2'] ?? 0.0;
+          _currentSys = data['sys'] ?? 0.0;
+          _currentDia = data['dia'] ?? 0.0;
+          
+          double raw = data['raw'] ?? 0.0;
           _rawSpots.add(FlSpot(_lastX, raw));
           _lastX += 1;
-
+          
           if (_rawSpots.length > 100) {
             _rawSpots.removeAt(0);
           }
@@ -50,9 +54,9 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
     if (user == null) return;
 
     if (_currentBpm == 0 && _currentSpO2 == 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Chưa có dữ liệu để lưu.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chưa có dữ liệu để lưu.')),
+      );
       return;
     }
 
@@ -63,7 +67,12 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
         userId: user.uid,
         date: DateTime.now(),
         type: RecordType.vitals,
-        indicators: {'heart_rate': _currentBpm, 'spO2': _currentSpO2},
+        indicators: {
+          'heart_rate': _currentBpm,
+          'spO2': _currentSpO2,
+          'systolic': _currentSys,
+          'diastolic': _currentDia,
+        },
       );
       await FirestoreService().addHealthRecord(record);
       if (mounted) {
@@ -74,9 +83,9 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -85,7 +94,6 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
 
   @override
   void dispose() {
-    // Để kết nối duy trì cho màn hình Home, chúng ta không ngắt kết nối ở đây
     super.dispose();
   }
 
@@ -98,16 +106,10 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
         elevation: 0,
         title: const Text(
           'Theo dõi trực tiếp',
-          style: TextStyle(
-            color: AppTheme.primaryColor,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: AppTheme.secondaryTextColor,
-          ),
+          icon: const Icon(Icons.arrow_back, color: AppTheme.secondaryTextColor),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -119,12 +121,8 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Icon(
-                  state == BluetoothConnectionState.connected
-                      ? Icons.bluetooth_connected
-                      : Icons.bluetooth_disabled,
-                  color: state == BluetoothConnectionState.connected
-                      ? Colors.green
-                      : Colors.red,
+                  state == BluetoothConnectionState.connected ? Icons.bluetooth_connected : Icons.bluetooth_disabled,
+                  color: state == BluetoothConnectionState.connected ? Colors.green : Colors.red,
                 ),
               );
             },
@@ -146,14 +144,7 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
               child: ElevatedButton.icon(
                 onPressed: _isSaving ? null : _saveData,
                 icon: _isSaving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.save),
                 label: const Text(
                   'Lưu kết quả hiện tại',
@@ -163,9 +154,7 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
                   backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   elevation: 4,
                 ),
               ),
@@ -177,49 +166,52 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
   }
 
   Widget _buildLiveMetrics() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _metricCard(
-            title: 'Nhịp tim',
-            value: _currentBpm > 0 ? _currentBpm.toStringAsFixed(0) : '--',
-            unit: 'BPM',
-            icon: Icons.favorite,
-            color: AppTheme.primaryColor,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _metricCard(
+                title: 'Nhịp tim',
+                value: _currentBpm > 0 ? _currentBpm.toStringAsFixed(0) : '--',
+                unit: 'BPM',
+                icon: Icons.favorite,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _metricCard(
+                title: 'SpO2',
+                value: _currentSpO2 > 0 ? _currentSpO2.toStringAsFixed(1) : '--',
+                unit: '%',
+                icon: Icons.air,
+                color: AppTheme.accentColor,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _metricCard(
-            title: 'SpO2',
-            value: _currentSpO2 > 0 ? _currentSpO2.toStringAsFixed(1) : '--',
-            unit: '%',
-            icon: Icons.air,
-            color: AppTheme.accentColor,
-          ),
+        const SizedBox(height: 16),
+        _metricCard(
+          title: 'Huyết áp ước tính',
+          value: _currentSys > 0 ? '${_currentSys.toInt()}/${_currentDia.toInt()}' : '--/--',
+          unit: 'mmHg',
+          icon: Icons.speed,
+          color: AppTheme.warningColor,
         ),
       ],
     );
   }
 
-  Widget _metricCard({
-    required String title,
-    required String value,
-    required String unit,
-    required IconData icon,
-    required Color color,
-  }) {
+  Widget _metricCard({required String title, required String value, required String unit, required IconData icon, required Color color}) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4)),
         ],
         border: Border.all(color: color.withValues(alpha: 0.1)),
       ),
@@ -227,32 +219,13 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
         children: [
           Icon(icon, color: color, size: 32),
           const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.secondaryTextColor,
-            ),
-          ),
+          Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.secondaryTextColor)),
           const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textColor,
-              fontFamily: 'Manrope',
-            ),
+            style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: AppTheme.textColor, fontFamily: 'Manrope'),
           ),
-          Text(
-            unit,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.mutedTextColor,
-            ),
-          ),
+          Text(unit, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.mutedTextColor)),
         ],
       ),
     );
@@ -266,67 +239,92 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
         ],
         border: Border.all(color: AppTheme.borderColor.withValues(alpha: 0.5)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.show_chart, color: AppTheme.primaryColor, size: 20),
-              SizedBox(width: 8),
-              Text(
-                'Tín hiệu PPG (Xung nhịp)',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textColor,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: LineChart(
-              LineChartData(
-                minX: _rawSpots.isNotEmpty ? _rawSpots.first.x : 0,
-                maxX: _rawSpots.isNotEmpty ? _rawSpots.last.x : 0,
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: _rawSpots,
-                    isCurved: true,
-                    color: AppTheme.primaryColor,
-                    barWidth: 3,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      gradient: LinearGradient(
-                        colors: [
-                          AppTheme.primaryColor.withValues(alpha: 0.2),
-                          AppTheme.primaryColor.withValues(alpha: 0.0),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.favorite, color: AppTheme.primaryColor, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Lịch sử Nhịp tim (BPM)',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textColor, fontSize: 16),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: LineChart(
+                      LineChartData(
+                        minX: _rawSpots.isNotEmpty ? _rawSpots.first.x : 0,
+                        maxX: _rawSpots.isNotEmpty ? _rawSpots.last.x : 0,
+                        minY: 40, // Giới hạn dưới cho nhịp tim
+                        maxY: 120, // Giới hạn trên cho nhịp tim
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots: _rawSpots,
+                            isCurved: false, // Nhịp tim nên vẽ đường thẳng nối để dễ quan sát biến thiên
+                            color: AppTheme.primaryColor,
+                            barWidth: 4,
+                            isStrokeCapRound: true,
+                            dotData: const FlDotData(show: true), // Hiện chấm tại mỗi giây
+                            belowBarData: BarAreaData(
+                              show: true,
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppTheme.primaryColor.withValues(alpha: 0.2),
+                                  AppTheme.primaryColor.withValues(alpha: 0.0),
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                            ),
+                          ),
+                        ],
+                        titlesData: FlTitlesData(
+                          show: true,
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 40,
+                              getTitlesWidget: (value, meta) => SideTitleWidget(
+                                meta: meta,
+                                child: Text(
+                                  value.toInt().toString(),
+                                  style: const TextStyle(fontSize: 10, color: AppTheme.mutedTextColor),
+                                ),
+                              ),
+                            ),
+                          ),
+                          bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        ),
+                        gridData: FlGridData(
+                          show: true,
+                          drawVerticalLine: true,
+                          getDrawingHorizontalLine: (value) => FlLine(
+                            color: AppTheme.borderColor.withValues(alpha: 0.1),
+                            strokeWidth: 1,
+                          ),
+                        ),
+                        borderData: FlBorderData(
+                          show: true,
+                          border: Border(
+                            left: BorderSide(color: AppTheme.borderColor.withValues(alpha: 0.5)),
+                            bottom: BorderSide(color: AppTheme.borderColor.withValues(alpha: 0.5)),
+                          ),
+                        ),
+                      ),
+                      duration: const Duration(milliseconds: 300),
                     ),
                   ),
                 ],
-                titlesData: const FlTitlesData(show: false),
-                gridData: const FlGridData(show: false),
-                borderData: FlBorderData(show: false),
               ),
-              duration: Duration.zero,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -344,11 +342,7 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
           Expanded(
             child: Text(
               'Đặt ngón tay trỏ nhẹ nhàng lên cảm biến MAX30102 và giữ yên để có kết quả chính xác nhất.',
-              style: TextStyle(
-                color: AppTheme.primaryColor,
-                fontSize: 13,
-                height: 1.4,
-              ),
+              style: TextStyle(color: AppTheme.primaryColor, fontSize: 13, height: 1.4),
             ),
           ),
         ],

@@ -1,109 +1,100 @@
-# HF Health - Ứng dụng Theo dõi Sức khỏe Thông minh
+# 🏥 HealthPulse VN - Giải pháp Theo dõi Sức khỏe Thông minh
 
-HF Health là một ứng dụng di động được xây dựng bằng Flutter, giúp người dùng theo dõi và quản lý sức khỏe cá nhân một cách toàn diện. Ứng dụng tích hợp công nghệ AI tiên tiến (Google Gemini) để phân tích dữ liệu và Google ML Kit (OCR) để tự động trích xuất thông tin từ các phiếu kết quả xét nghiệm.
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white" alt="Flutter">
+  <img src="https://img.shields.io/badge/Firebase-039BE5?style=for-the-badge&logo=Firebase&logoColor=white" alt="Firebase">
+  <img src="https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white" alt="Gemini">
+  <img src="https://img.shields.io/badge/ESP32--C3-E7352C?style=for-the-badge&logo=espressif&logoColor=white" alt="ESP32">
+</p>
 
-## 🌟 Tính năng chính
-
-- **Theo dõi chỉ số sức khỏe:** Nhập và theo dõi các chỉ số sinh tồn (huyết áp, nhịp tim), chỉ số cơ thể (BMI, cân nặng) và kết quả xét nghiệm máu.
-- **AI OCR (Quét kết quả xét nghiệm):** Sử dụng camera để chụp và tự động trích xuất dữ liệu từ các phiếu kết quả xét nghiệm in giấy, giúp tiết kiệm thời gian nhập liệu.
-- **Phân tích sức khỏe bằng AI:** Tích hợp Google Gemini AI để đưa ra các nhận xét, lời khuyên và giải thích các chỉ số sức khỏe một cách dễ hiểu.
-- **Trò chuyện với AI (AI Chat):** Hỗ trợ giải đáp các thắc mắc về sức khỏe dựa trên ngữ cảnh dữ liệu cá nhân của người dùng.
-- **Dashboard trực quan:** Biểu diễn xu hướng sức khỏe qua các biểu đồ (fl_chart) và thẻ tóm tắt trạng thái.
-- **Quản lý lịch sử:** Lưu trữ và quản lý dòng thời gian các bản ghi sức khỏe một cách khoa học.
-- **Hỗ trợ tiếng Việt:** Giao diện và nội dung được tối ưu hóa hoàn toàn cho người dùng Việt Nam.
-
-## 🛠 Tech Stack
-
-- **Ngôn ngữ:** Dart (3.10.7+)
-- **Framework:** Flutter
-- **Thiết kế:** Material Design 3
-- **Quản lý trạng thái:** Provider
-- **Backend:** Firebase (Authentication, Cloud Firestore)
-- **AI Engine:** 
-  - Google Generative AI (Gemini Pro) cho phân tích và Chatbot.
-  - Google ML Kit cho nhận diện văn bản (OCR).
-- **Đồ họa:** fl_chart
-- **Công cụ khác:** image_picker, camera, uuid, intl.
-
-## 📋 Yêu cầu hệ thống
-
-Trước khi bắt đầu, hãy đảm bảo bạn đã cài đặt:
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) (v3.10.7 trở lên)
-- [Dart SDK](https://dart.dev/get-started/sdk/install)
-- [Android Studio](https://developer.android.com/studio) hoặc [VS Code](https://code.visualstudio.com/)
-- Một tài khoản [Firebase](https://console.firebase.google.com/)
-- API Key của [Google AI Studio (Gemini)](https://aistudio.google.com/app/apikey)
-
-## 🚀 Hướng dẫn cài đặt
-
-### 1. Clone Repository
-```bash
-git clone https://github.com/user/hf_health.git
-cd hf_health
-```
-
-### 2. Cài đặt các Package
-```bash
-flutter pub get
-```
-
-### 3. Cấu hình Firebase
-1. Tạo một project mới trên [Firebase Console](https://console.firebase.google.com/).
-2. Thêm ứng dụng Android và iOS vào project.
-3. Tải tệp `google-services.json` (cho Android) và `GoogleService-Info.plist` (cho iOS) về máy.
-4. Đặt `google-services.json` vào thư mục `android/app/`.
-5. Đặt `GoogleService-Info.plist` vào thư mục `ios/Runner/`.
-6. Bật **Email/Password Authentication** và **Cloud Firestore** trong Firebase Console.
-
-### 4. Cấu hình API Gemini
-Tạo một tệp cấu hình hoặc thiết lập biến môi trường cho Gemini API Key trong ứng dụng của bạn (thường được xử lý trong `GeminiService`).
-
-### 5. Chạy ứng dụng
-```bash
-# Chạy trên thiết bị giả lập hoặc thiết bị thật
-flutter run
-```
-
-## 🏗 Kiến trúc dự án
-
-Dự án được tổ chức theo cấu trúc thư mục rõ ràng:
-
-```
-lib/
-├── config/          # Cấu hình Theme, Constants (màu sắc, chỉ số sức khỏe)
-├── models/          # Các Data Models (HealthRecord, UserModel, ChatMessage)
-├── screens/         # Giao diện người dùng phân theo tính năng
-│   ├── ai/          # Màn hình Chat AI
-│   ├── auth/        # Login, Register
-│   ├── history/     # Danh sách bản ghi, Chi tiết bản ghi
-│   ├── home/        # Dashboard chính
-│   ├── input/       # Nhập liệu thủ công (Máu, Vitals, Body)
-│   ├── profile/     # Hồ sơ cá nhân
-│   └── scan/        # Quét OCR
-├── services/        # Logic nghiệp vụ (Auth, Firestore, Gemini, OCR)
-├── widgets/         # Các thành phần giao diện dùng chung
-└── app.dart         # Cấu hình Router và App chính
-```
-
-## 🗺 Lộ trình phát triển (Roadmap)
-
-### Giai đoạn 1: Tối ưu hóa (Hiện tại)
-- Hoàn thiện UI/UX với hiệu ứng Shimmer và Hero animations.
-- Cải thiện độ chính xác của AI OCR cho các mẫu bệnh viện tại Việt Nam.
-
-### Giai đoạn 2: Tích hợp Hệ sinh thái
-- Đồng bộ dữ liệu với Apple Health và Google Fit.
-- Hệ thống thông báo nhắc nhở uống thuốc và tái khám.
-- Gamification (Hệ thống huy hiệu thành tích sức khỏe).
-
-### Giai đoạn 3: Y tế chuyên sâu
-- Phân tích xu hướng nâng cao và xuất báo cáo PDF.
-- AI phân tích khẩu phần ăn qua hình ảnh.
-- Chế độ quản lý sức khỏe cho gia đình (Family Mode).
-
-## 📄 Giấy phép
-
-Dự án này được phát triển cho mục đích học tập và thực tập. Vui lòng liên hệ với tác giả trước khi sử dụng cho mục đích thương mại.
+**HealthPulse VN** là ứng dụng di động tiên phong tích hợp **AI (Trí tuệ nhân tạo)** và **IoT (Internet vạn vật)** để giúp người dùng quản lý sức khỏe cá nhân một cách chủ động, chính xác và dễ dàng nhất.
 
 ---
-© 2026 HF Health Team. Made with ❤️ for a healthier Vietnam.
+
+## ✨ Tính năng nổi bật
+
+### 🧠 Trí tuệ nhân tạo (AI)
+- **AI OCR Lab Scanner:** Tự động trích xuất dữ liệu từ phiếu kết quả xét nghiệm máu chỉ bằng một tấm ảnh chụp (ML Kit).
+- **Gemini Health Insights:** Phân tích dữ liệu sức khỏe tổng thể, đưa ra cảnh báo và lời khuyên y tế cá nhân hóa thông qua mô hình ngôn ngữ lớn của Google.
+- **AI Assistant:** Chatbot hỗ trợ 24/7 giải đáp mọi thắc mắc về y tế dựa trên dữ liệu lịch sử của chính người dùng.
+
+### ⌚ Kết nối phần cứng (IoT - BLE)
+- **Real-time Heart Rate:** Kết nối trực tiếp với module **ESP32-C3** và cảm biến **MAX30102**.
+- **Live PPG Graph:** Theo dõi dạng sóng xung nhịp tim trực quan ngay trên điện thoại.
+- **Auto-Sync:** Tự động ghi nhớ và kết nối lại thiết bị đo mỗi khi mở ứng dụng.
+
+### 📊 Quản lý dữ liệu
+- **Dashboard Bento:** Giao diện thẻ hiện đại, tóm tắt nhanh tình trạng Huyết áp, Nhịp tim, Đường huyết.
+- **Health Trends:** Biểu đồ hóa các chỉ số theo thời gian để theo dõi diễn biến sức khỏe dài hạn.
+- **Cloud Secure:** Lưu trữ dữ liệu an toàn trên nền tảng Google Firebase.
+
+---
+
+## 🛠 Công nghệ sử dụng
+
+| Lớp (Layer) | Công nghệ |
+| :--- | :--- |
+| **Mobile App** | Flutter (Dart 3), Provider, fl_chart |
+| **Backend** | Firebase Auth, Firestore |
+| **AI Engine** | Google Gemini AI, Google ML Kit (OCR) |
+| **Hardware** | ESP32-C3 Super Mini, C++, BLE (Bluetooth Low Energy) |
+| **Sensors** | MAX30102 (Heart Rate & SpO2) |
+
+---
+
+## 🚀 Bắt đầu nhanh
+
+### 1. Dành cho ứng dụng Flutter
+1. Cài đặt Flutter SDK (v3.10.7+).
+2. Clone project và chạy lệnh cài đặt:
+   ```bash
+   flutter pub get
+   ```
+3. Cấu hình file `google-services.json` từ Firebase Console vào thư mục `android/app/`.
+4. Chạy ứng dụng:
+   ```bash
+   flutter run
+   ```
+
+### 2. Dành cho phần cứng (ESP32)
+Chúng tôi cung cấp script nạp code tự động cho Linux:
+1. Cắm ESP32-C3 vào cổng USB.
+2. Cấp quyền truy cập: `sudo chmod 666 /dev/ttyACM0`
+3. Chạy script:
+   ```bash
+   ./flash_esp32.sh
+   ```
+
+---
+
+## 📂 Cấu trúc thư mục
+
+```text
+lib/
+├── config/     # Giao diện (Theme) và hằng số sức khỏe
+├── models/     # Mô hình dữ liệu (HealthRecord, User)
+├── services/   # Bộ não logic (BLE, Firestore, Gemini, OCR)
+├── screens/    # Các màn hình tính năng (Home, Scan, AI, Vitals)
+└── widgets/    # Các thành phần UI dùng chung
+health_esp32/   # Mã nguồn C++ cho module ESP32
+```
+
+---
+
+## 🗺 Lộ trình phát triển
+
+- [x] Tích hợp kết nối BLE với ESP32-C3.
+- [x] Đồ thị nhịp tim thời gian thực.
+- [x] AI tư vấn sức khỏe qua Chat.
+- [ ] Giai đoạn 2: Nhắc nhở uống thuốc thông minh.
+- [ ] Giai đoạn 3: Phân tích chế độ dinh dưỡng qua hình ảnh bữa ăn.
+
+---
+
+## 📄 Bản quyền & Đóng góp
+Dự án được phát triển bởi **HealthPulse VN Team**. Mọi đóng góp vui lòng gửi qua phần **Issues** của Repository này.
+
+---
+<p align="center">
+  Made with ❤️ for a healthier Vietnam.
+</p>

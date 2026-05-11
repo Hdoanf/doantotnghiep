@@ -14,14 +14,18 @@ class BleService {
   BluetoothDevice? connectedDevice;
   BluetoothCharacteristic? dataCharacteristic;
 
-  final _dataStreamController = StreamController<Map<String, dynamic>>.broadcast();
+  final _dataStreamController =
+      StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get dataStream => _dataStreamController.stream;
 
-  final _connectionStateController = StreamController<BluetoothConnectionState>.broadcast();
-  Stream<BluetoothConnectionState> get connectionState => _connectionStateController.stream;
+  final _connectionStateController =
+      StreamController<BluetoothConnectionState>.broadcast();
+  Stream<BluetoothConnectionState> get connectionState =>
+      _connectionStateController.stream;
 
   static const String serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
-  static const String characteristicUuid = "19b10001-e8f2-537e-4f6c-d104768a1214";
+  static const String characteristicUuid =
+      "19b10001-e8f2-537e-4f6c-d104768a1214";
   static const String _prefDeviceKey = "last_connected_device_id";
 
   Future<bool> requestPermissions() async {
@@ -41,16 +45,16 @@ class BleService {
   Future<void> startScan() async {
     debugPrint("BLE: Starting scan...");
     if (await FlutterBluePlus.isSupported == false) {
-        debugPrint("BLE: Bluetooth not supported");
-        return;
+      debugPrint("BLE: Bluetooth not supported");
+      return;
     }
-    
-    await FlutterBluePlus.adapterState.where((s) => s == BluetoothAdapterState.on).first;
+
+    await FlutterBluePlus.adapterState
+        .where((s) => s == BluetoothAdapterState.on)
+        .first;
     debugPrint("BLE: Adapter is ON");
 
-    await FlutterBluePlus.startScan(
-      timeout: const Duration(seconds: 15),
-    );
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 15));
     debugPrint("BLE: Scan initiated");
   }
 
@@ -62,7 +66,7 @@ class BleService {
     debugPrint("BLE: Connecting to ${device.remoteId}...");
     await device.connect();
     connectedDevice = device;
-    
+
     // Save device ID for auto-connect
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_prefDeviceKey, device.remoteId.toString());
@@ -83,7 +87,8 @@ class BleService {
     for (var service in services) {
       if (service.uuid.toString().toLowerCase() == serviceUuid.toLowerCase()) {
         for (var char in service.characteristics) {
-          if (char.uuid.toString().toLowerCase() == characteristicUuid.toLowerCase()) {
+          if (char.uuid.toString().toLowerCase() ==
+              characteristicUuid.toLowerCase()) {
             dataCharacteristic = char;
             await char.setNotifyValue(true);
             char.onValueReceived.listen((value) {
@@ -98,17 +103,19 @@ class BleService {
   Future<void> autoConnect() async {
     final prefs = await SharedPreferences.getInstance();
     final savedId = prefs.getString(_prefDeviceKey);
-    
+
     if (savedId == null || connectedDevice != null) return;
-    
+
     debugPrint("BLE: Attempting auto-connect to $savedId");
 
     // Request permissions first
     bool hasPermission = await requestPermissions();
     if (!hasPermission) return;
-    
+
     // Check if already system connected
-    List<BluetoothDevice> systemDevices = await FlutterBluePlus.systemDevices([]);
+    List<BluetoothDevice> systemDevices = await FlutterBluePlus.systemDevices(
+      [],
+    );
     for (var device in systemDevices) {
       if (device.remoteId.toString() == savedId) {
         await connect(device);
@@ -142,7 +149,16 @@ class BleService {
       String decoded = utf8.decode(value);
       if (decoded.startsWith('{')) {
         Map<String, dynamic> data = jsonDecode(decoded);
-        _dataStreamController.add(data);
+        // Ensure all numeric values are doubles
+        Map<String, dynamic> processedData = {};
+        data.forEach((key, value) {
+          if (value is num) {
+            processedData[key] = value.toDouble();
+          } else {
+            processedData[key] = value;
+          }
+        });
+        _dataStreamController.add(processedData);
       } else {
         List<String> parts = decoded.split(',');
         if (parts.length >= 3) {
