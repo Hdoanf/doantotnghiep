@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/env.dart';
 import '../models/health_record.dart';
 
 class OpenRouterService {
-  final String _apiKey = "REMOVED_OPENROUTER_KEY";
+  final String _apiKey = Env.openRouterApiKey;
   final String _model = "meta-llama/llama-3.1-8b-instruct:free";
 
   Future<String> getChatResponse(List<HealthRecord> history, String userMessage) async {

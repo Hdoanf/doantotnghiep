@@ -1,8 +1,9 @@
+import os
 import requests
 import json
 import time
 
-api_key = "REMOVED_GEMINI_KEY"
+api_key = os.environ["GEMINI_API_KEY"]
 models = [
     "gemini-1.5-flash",
     "gemini-1.5-pro",

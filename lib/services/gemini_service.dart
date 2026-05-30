@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../config/env.dart';
 import '../config/health_constants.dart';
 import '../models/health_record.dart';
 
 class GeminiService {
-  final String _apiKey = "REMOVED_GEMINI_KEY";
+  final String _apiKey = Env.geminiApiKey;
 
   final String _baseUrl =
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
