@@ -28,6 +28,12 @@ class BleService {
       "19b10001-e8f2-537e-4f6c-d104768a1214";
   static const String _prefDeviceKey = "last_connected_device_id";
 
+  // History buffer for live graph persistence
+  final List<Map<String, dynamic>> _historyBuffer = [];
+  List<Map<String, dynamic>> get historyBuffer =>
+      List.unmodifiable(_historyBuffer);
+  static const int maxBufferSize = 30;
+
   Future<bool> requestPermissions() async {
     if (Platform.isAndroid) {
       debugPrint("BLE: Requesting permissions for Android...");
@@ -158,15 +164,29 @@ class BleService {
             processedData[key] = value;
           }
         });
+
+        // Update history buffer
+        _historyBuffer.add(processedData);
+        if (_historyBuffer.length > maxBufferSize) {
+          _historyBuffer.removeAt(0);
+        }
+
         _dataStreamController.add(processedData);
       } else {
         List<String> parts = decoded.split(',');
         if (parts.length >= 3) {
-          _dataStreamController.add({
+          final data = {
             'bpm': double.tryParse(parts[0]) ?? 0.0,
             'spo2': double.tryParse(parts[1]) ?? 0.0,
             'raw': double.tryParse(parts[2]) ?? 0.0,
-          });
+          };
+
+          _historyBuffer.add(data);
+          if (_historyBuffer.length > maxBufferSize) {
+            _historyBuffer.removeAt(0);
+          }
+
+          _dataStreamController.add(data);
         }
       }
     } catch (e) {

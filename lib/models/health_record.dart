@@ -8,6 +8,7 @@ class HealthRecord {
   final DateTime date;
   final RecordType type;
   final Map<String, double> indicators;
+  final List<double>? historyData; // New field for graph history
   final String? note;
 
   HealthRecord({
@@ -16,6 +17,7 @@ class HealthRecord {
     required this.date,
     required this.type,
     required this.indicators,
+    this.historyData,
     this.note,
   });
 
@@ -32,6 +34,9 @@ class HealthRecord {
       indicators: (data['indicators'] as Map<String, dynamic>).map(
         (key, value) => MapEntry(key, (value as num).toDouble()),
       ),
+      historyData: data['historyData'] != null 
+          ? List<double>.from((data['historyData'] as List).map((e) => (e as num).toDouble()))
+          : null,
       note: data['note'],
     );
   }
@@ -42,6 +47,7 @@ class HealthRecord {
       'date': Timestamp.fromDate(date),
       'type': type.toString(),
       'indicators': indicators,
+      'historyData': historyData,
       'note': note,
     };
   }

@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../config/app_theme.dart';
@@ -32,6 +33,21 @@ class RecordDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(),
+            if (record.historyData != null &&
+                record.historyData!.isNotEmpty) ...[
+              const SizedBox(height: 32),
+              const Text(
+                'Biểu đồ nhịp tim lúc đo',
+                style: TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textColor,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildHistoryGraph(),
+            ],
             const SizedBox(height: 32),
             const Text(
               'Các chỉ số chi tiết',
@@ -112,11 +128,7 @@ class RecordDetailScreen extends StatelessWidget {
               color: typeColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(
-              _getTypeIcon(record.type),
-              color: typeColor,
-              size: 32,
-            ),
+            child: Icon(_getTypeIcon(record.type), color: typeColor, size: 32),
           ),
           const SizedBox(width: 20),
           Expanded(
@@ -215,9 +227,7 @@ class RecordDetailScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: statusColor.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: statusColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -310,34 +320,118 @@ class RecordDetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildHistoryGraph() {
+    final spots = record.historyData!
+        .asMap()
+        .entries
+        .map((e) => FlSpot(e.key.toDouble(), e.value))
+        .toList();
+
+    return Container(
+      height: 200,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor.withValues(alpha: 0.5)),
+      ),
+      child: LineChart(
+        LineChartData(
+          minY: 40,
+          maxY: 120,
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              color: AppTheme.primaryColor,
+              barWidth: 3,
+              isStrokeCapRound: true,
+              dotData: const FlDotData(show: false),
+              belowBarData: BarAreaData(
+                show: true,
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              ),
+            ),
+          ],
+          titlesData: FlTitlesData(
+            show: true,
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 35,
+                getTitlesWidget: (value, meta) => Text(
+                  value.toInt().toString(),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppTheme.mutedTextColor,
+                  ),
+                ),
+              ),
+            ),
+            bottomTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+          ),
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            getDrawingHorizontalLine: (value) => FlLine(
+              color: AppTheme.borderColor.withValues(alpha: 0.1),
+              strokeWidth: 1,
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+        ),
+      ),
+    );
+  }
+
   Map<String, dynamic> _getIndicatorConfig(String key) {
-    if (HealthConstants.bloodIndicators.containsKey(key)) return HealthConstants.bloodIndicators[key];
-    if (HealthConstants.vitalsIndicators.containsKey(key)) return HealthConstants.vitalsIndicators[key];
-    if (HealthConstants.bodyIndicators.containsKey(key)) return HealthConstants.bodyIndicators[key];
+    if (HealthConstants.bloodIndicators.containsKey(key))
+      return HealthConstants.bloodIndicators[key];
+    if (HealthConstants.vitalsIndicators.containsKey(key))
+      return HealthConstants.vitalsIndicators[key];
+    if (HealthConstants.bodyIndicators.containsKey(key))
+      return HealthConstants.bodyIndicators[key];
     return {};
   }
 
   Color _getTypeColor(RecordType type) {
     switch (type) {
-      case RecordType.bloodTest: return Colors.redAccent;
-      case RecordType.vitals: return Colors.orangeAccent;
-      case RecordType.bodyMetrics: return AppTheme.primaryColor;
+      case RecordType.bloodTest:
+        return Colors.redAccent;
+      case RecordType.vitals:
+        return Colors.orangeAccent;
+      case RecordType.bodyMetrics:
+        return AppTheme.primaryColor;
     }
   }
 
   IconData _getTypeIcon(RecordType type) {
     switch (type) {
-      case RecordType.bloodTest: return Icons.bloodtype_rounded;
-      case RecordType.vitals: return Icons.monitor_heart_rounded;
-      case RecordType.bodyMetrics: return Icons.monitor_weight_rounded;
+      case RecordType.bloodTest:
+        return Icons.bloodtype_rounded;
+      case RecordType.vitals:
+        return Icons.monitor_heart_rounded;
+      case RecordType.bodyMetrics:
+        return Icons.monitor_weight_rounded;
     }
   }
 
   String _getTypeName(RecordType type) {
     switch (type) {
-      case RecordType.bloodTest: return 'Xét nghiệm máu';
-      case RecordType.vitals: return 'Chỉ số sinh tồn';
-      case RecordType.bodyMetrics: return 'Chỉ số cơ thể';
+      case RecordType.bloodTest:
+        return 'Xét nghiệm máu';
+      case RecordType.vitals:
+        return 'Chỉ số sinh tồn';
+      case RecordType.bodyMetrics:
+        return 'Chỉ số cơ thể';
     }
   }
 }

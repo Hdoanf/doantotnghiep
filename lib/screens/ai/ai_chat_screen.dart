@@ -32,7 +32,8 @@ class _AIChatScreenState extends State<AIChatScreen> {
     // Welcome message from AI
     _messages.add(
       const _ChatMessage(
-        text: 'Chào bạn, tôi là trợ lý y tế số của bạn. Tôi có thể giúp gì cho tình trạng tim mạch hoặc đường huyết của bạn hôm nay?',
+        text:
+            'Chào bạn, tôi là trợ lý y tế số của bạn. Tôi có thể giúp gì cho tình trạng tim mạch hoặc đường huyết của bạn hôm nay?',
         isUser: false,
       ),
     );
@@ -73,10 +74,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _messages.add(_ChatMessage(
-            text: 'Xin lỗi, đã xảy ra lỗi: $e',
-            isUser: false,
-          ));
+          _messages.add(
+            _ChatMessage(text: 'Xin lỗi, đã xảy ra lỗi: $e', isUser: false),
+          );
           _isLoading = false;
         });
         _scrollToBottom();
@@ -145,13 +145,16 @@ class _AIChatScreenState extends State<AIChatScreen> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              itemCount: _messages.length + (_isLoading ? 1 : 0) + 1, // +1 for Welcome Header
+              itemCount:
+                  _messages.length +
+                  (_isLoading ? 1 : 0) +
+                  1, // +1 for Welcome Header
               itemBuilder: (context, index) {
                 if (index == 0) return _buildWelcomeHeader();
-                
+
                 final messageIndex = index - 1;
                 if (messageIndex == _messages.length) return _typingIndicator();
-                
+
                 return _messageBubble(_messages[messageIndex]);
               },
             ),
@@ -243,8 +246,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment:
-            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isUser) ...[
@@ -254,12 +258,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
               decoration: const BoxDecoration(
                 color: AppTheme.surfaceColor,
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 4,
-                  ),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
               ),
               child: const Icon(
                 Icons.smart_toy_rounded,
@@ -362,9 +361,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
             decoration: const BoxDecoration(
               color: AppTheme.surfaceColor,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(color: Colors.black12, blurRadius: 4),
-              ],
+              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
             ),
             child: const Icon(
               Icons.smart_toy_rounded,
@@ -428,9 +425,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor.withValues(alpha: 0.95),
         border: Border(
-          top: BorderSide(
-            color: AppTheme.borderColor.withValues(alpha: 0.5),
-          ),
+          top: BorderSide(color: AppTheme.borderColor.withValues(alpha: 0.5)),
         ),
       ),
       child: SafeArea(
@@ -441,13 +436,19 @@ class _AIChatScreenState extends State<AIChatScreen> {
               height: 56,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 children: [
-                  _suggestionChip('Giải thích chỉ số HbA1c', Icons.show_chart),
+                  _suggestionChip(
+                    'Chỉ số hôm nay của tôi thế nào',
+                    Icons.show_chart,
+                  ),
                   const SizedBox(width: 8),
-                  _suggestionChip('Lời khuyên huyết áp cao', Icons.favorite),
+                  _suggestionChip('Lời khuyên cho tôi', Icons.favorite),
                   const SizedBox(width: 8),
-                  _suggestionChip('Chế độ ăn cho tiểu đường', Icons.restaurant),
+                  _suggestionChip('Chế độ ăn cho tôi', Icons.restaurant),
                 ],
               ),
             ),
@@ -568,8 +569,5 @@ class _ChatMessage {
   final String text;
   final bool isUser;
 
-  const _ChatMessage({
-    required this.text,
-    required this.isUser,
-  });
+  const _ChatMessage({required this.text, required this.isUser});
 }
