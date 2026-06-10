@@ -1,0 +1,11 @@
+# Chạy debug
+flutter run
+
+# Build APK
+flutter build apk --release
+
+# Build APK chia theo ABI (file nhỏ hơn, khuyến nghị)
+flutter build apk --release --split-per-abi
+
+APK output sẽ ở:
+build/app/outputs/flutter-apk/app-release.apk

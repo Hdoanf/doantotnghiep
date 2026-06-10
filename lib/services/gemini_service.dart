@@ -6,10 +6,12 @@ import '../config/health_constants.dart';
 import '../models/health_record.dart';
 
 class GeminiService {
-  final String _apiKey = Env.geminiApiKey;
+  final String _apiKey = Env.groqApiKey;
 
   final String _baseUrl =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+      "https://api.groq.com/openai/v1/chat/completions";
+
+  final String _model = "meta-llama/llama-4-scout-17b-16e-instruct";
 
   Future<String> getHealthAdvice(
     List<HealthRecord> history,
@@ -93,39 +95,34 @@ class GeminiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          'X-goog-api-key': _apiKey, // Gửi key qua header như curl
+          'Authorization': 'Bearer $_apiKey',
         },
         body: jsonEncode({
-          "contents": [
-            {
-              "parts": [
-                {"text": prompt},
-              ],
-            },
+          "model": _model,
+          "messages": [
+            {"role": "user", "content": prompt},
           ],
-          "generationConfig": {"temperature": 0.45, "maxOutputTokens": 4096},
+          "temperature": 0.45,
+          "max_tokens": 4096,
         }),
       );
 
       final data = jsonDecode(utf8.decode(response.bodyBytes));
 
       if (response.statusCode == 200) {
-        final candidate = data['candidates'][0];
-        final text = candidate['content']['parts'][0]['text'];
-        final finishReason = candidate['finishReason'] ?? '';
-        if (finishReason == 'MAX_TOKENS') {
-          debugPrint('⚠️ AI response was truncated due to MAX_TOKENS limit');
+        final text = data['choices'][0]['message']['content'] as String;
+        final finishReason = data['choices'][0]['finish_reason'] ?? '';
+        if (finishReason == 'length') {
+          debugPrint('⚠️ AI response was truncated due to max_tokens limit');
         }
         return text;
       } else {
         if (response.statusCode == 429) {
           throw Exception(
-            'Đã hết quota AI tạm thời. Vui lòng chờ một lúc rồi thử lại, hoặc kiểm tra gói/billing Gemini.',
+            'Đã hết quota AI tạm thời. Vui lòng chờ một lúc rồi thử lại.',
           );
         }
-        String errorMsg = data['error'] != null
-            ? data['error']['message']
-            : "Unknown error";
+        final errorMsg = data['error']?['message'] ?? 'Unknown error';
         throw Exception("Lỗi AI (${response.statusCode}): $errorMsg");
       }
     } catch (e) {

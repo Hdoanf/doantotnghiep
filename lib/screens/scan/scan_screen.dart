@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../config/app_theme.dart';
@@ -13,29 +14,132 @@ class ScanScreen extends StatefulWidget {
   State<ScanScreen> createState() => _ScanScreenState();
 }
 
-class _ScanScreenState extends State<ScanScreen> {
+class _ScanScreenState extends State<ScanScreen> with WidgetsBindingObserver {
   final _ocrService = OCRService();
   final _geminiService = GeminiService();
+
+  CameraController? _controller;
+  List<CameraDescription> _cameras = [];
+  int _cameraIndex = 0;
+  bool _isFlashOn = false;
+  bool _isCameraReady = false;
   bool _isProcessing = false;
 
-  void _scanImage(ImageSource source) async {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initCamera();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _controller?.dispose();
+    _ocrService.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    if (state == AppLifecycleState.inactive) {
+      _controller?.dispose();
+    } else if (state == AppLifecycleState.resumed) {
+      _initCamera();
+    }
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      _cameras = await availableCameras();
+      if (_cameras.isEmpty) return;
+      await _startCamera(_cameraIndex);
+    } catch (e) {
+      debugPrint('Camera init error: $e');
+    }
+  }
+
+  Future<void> _startCamera(int index) async {
+    final controller = CameraController(
+      _cameras[index],
+      ResolutionPreset.high,
+      enableAudio: false,
+    );
+    _controller = controller;
+    try {
+      await controller.initialize();
+      if (mounted) setState(() => _isCameraReady = true);
+    } catch (e) {
+      debugPrint('Camera start error: $e');
+    }
+  }
+
+  Future<void> _switchCamera() async {
+    if (_cameras.length < 2) return;
+    setState(() => _isCameraReady = false);
+    await _controller?.dispose();
+    _cameraIndex = (_cameraIndex + 1) % _cameras.length;
+    await _startCamera(_cameraIndex);
+  }
+
+  Future<void> _toggleFlash() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    _isFlashOn = !_isFlashOn;
+    await _controller!.setFlashMode(
+      _isFlashOn ? FlashMode.torch : FlashMode.off,
+    );
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _takePicture() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    if (_isProcessing) return;
+
+    setState(() => _isProcessing = true);
+    try {
+      if (_isFlashOn) await _controller!.setFlashMode(FlashMode.off);
+      final photo = await _controller!.takePicture();
+      if (_isFlashOn) await _controller!.setFlashMode(FlashMode.torch);
+
+      final image = XFile(photo.path);
+      await _processImage(image);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi chụp ảnh: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: source);
+    final image = await picker.pickImage(source: ImageSource.gallery);
     if (image == null) return;
 
     setState(() => _isProcessing = true);
     try {
-      // 1. OCR Step
-      final text = await _ocrService.recognizeText(image);
+      await _processImage(image);
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
 
-      // 2. AI Parsing Step
+  Future<void> _processImage(XFile image) async {
+    try {
+      final text = await _ocrService.recognizeText(image);
       final indicators = await _geminiService.parseOCRText(text);
 
       if (mounted) {
         if (indicators.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('AI không nhận diện được chỉ số nào. Bạn hãy thử chụp rõ nét hơn hoặc nhập tay nhé.'),
+              content: Text(
+                'AI không nhận diện được chỉ số nào. Bạn hãy thử chụp rõ nét hơn hoặc nhập tay nhé.',
+              ),
               duration: Duration(seconds: 5),
             ),
           );
@@ -53,10 +157,10 @@ class _ScanScreenState extends State<ScanScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi quét: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi quét: $e')));
       }
-    } finally {
-      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
@@ -118,21 +222,11 @@ class _ScanScreenState extends State<ScanScreen> {
   Widget _buildReady() {
     return Stack(
       children: [
-        // Simulated Camera Feed Background
+        // Live Camera Preview
         Positioned.fill(
-          child: Container(
-            color: const Color(0xFF1A1A1A),
-            child: Opacity(
-              opacity: 0.4,
-              child: Image.network(
-                'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2000&auto=format&fit=crop',
-                fit: BoxFit.cover,
-                // Apply a grayscale/luminosity filter to mimic the design
-                color: Colors.white,
-                colorBlendMode: BlendMode.luminosity,
-              ),
-            ),
-          ),
+          child: _isCameraReady && _controller != null
+              ? CameraPreview(_controller!)
+              : const ColoredBox(color: Colors.black),
         ),
 
         // Top Overlay Header
@@ -160,10 +254,11 @@ class _ScanScreenState extends State<ScanScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _iconButton(Icons.close, () {
-                  // Usually goes back, but maybe not in bottom nav
-                }),
-                _iconButton(Icons.flash_off, () {}),
+                _iconButton(Icons.close, () => Navigator.maybePop(context)),
+                _iconButton(
+                  _isFlashOn ? Icons.flash_on : Icons.flash_off,
+                  _toggleFlash,
+                ),
               ],
             ),
           ),
@@ -174,10 +269,12 @@ class _ScanScreenState extends State<ScanScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Instruction Text
               Container(
                 margin: const EdgeInsets.only(bottom: 32),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(24),
@@ -192,54 +289,32 @@ class _ScanScreenState extends State<ScanScreen> {
                   ),
                 ),
               ),
-              
-              // Scanning Guide Reticle
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.8,
                 child: AspectRatio(
                   aspectRatio: 3 / 4,
                   child: Stack(
                     children: [
-                      // Dark overlay outside reticle is hard to do cleanly without CustomPainter,
-                      // we'll just use the brackets.
-                      
-                      // Top Left
                       Positioned(
                         top: 0,
                         left: 0,
-                        child: _cornerBracket(
-                          top: true,
-                          left: true,
-                        ),
+                        child: _cornerBracket(top: true, left: true),
                       ),
-                      // Top Right
                       Positioned(
                         top: 0,
                         right: 0,
-                        child: _cornerBracket(
-                          top: true,
-                          left: false,
-                        ),
+                        child: _cornerBracket(top: true, left: false),
                       ),
-                      // Bottom Left
                       Positioned(
                         bottom: 0,
                         left: 0,
-                        child: _cornerBracket(
-                          top: false,
-                          left: true,
-                        ),
+                        child: _cornerBracket(top: false, left: true),
                       ),
-                      // Bottom Right
                       Positioned(
                         bottom: 0,
                         right: 0,
-                        child: _cornerBracket(
-                          top: false,
-                          left: false,
-                        ),
+                        child: _cornerBracket(top: false, left: false),
                       ),
-                      // Center Crosshair
                       const Center(
                         child: Opacity(
                           opacity: 0.2,
@@ -264,7 +339,12 @@ class _ScanScreenState extends State<ScanScreen> {
           left: 0,
           right: 0,
           child: Container(
-            padding: const EdgeInsets.only(top: 32, bottom: 48, left: 24, right: 24),
+            padding: const EdgeInsets.only(
+              top: 32,
+              bottom: 48,
+              left: 24,
+              right: 24,
+            ),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
@@ -279,15 +359,12 @@ class _ScanScreenState extends State<ScanScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // Gallery Button
                 _bottomIconButton(
                   icon: Icons.photo_library_outlined,
-                  onTap: () => _scanImage(ImageSource.gallery),
+                  onTap: _pickFromGallery,
                 ),
-                
-                // Shutter Button
                 GestureDetector(
-                  onTap: () => _scanImage(ImageSource.camera),
+                  onTap: _takePicture,
                   child: Container(
                     width: 80,
                     height: 80,
@@ -307,11 +384,9 @@ class _ScanScreenState extends State<ScanScreen> {
                     ),
                   ),
                 ),
-                
-                // Switch Camera Button
                 _bottomIconButton(
                   icon: Icons.cameraswitch_outlined,
-                  onTap: () {},
+                  onTap: _switchCamera,
                 ),
               ],
             ),
@@ -336,7 +411,10 @@ class _ScanScreenState extends State<ScanScreen> {
     );
   }
 
-  Widget _bottomIconButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _bottomIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -358,10 +436,18 @@ class _ScanScreenState extends State<ScanScreen> {
       height: 48,
       decoration: BoxDecoration(
         border: Border(
-          top: top ? const BorderSide(color: AppTheme.primaryColor, width: 4) : BorderSide.none,
-          bottom: !top ? const BorderSide(color: AppTheme.primaryColor, width: 4) : BorderSide.none,
-          left: left ? const BorderSide(color: AppTheme.primaryColor, width: 4) : BorderSide.none,
-          right: !left ? const BorderSide(color: AppTheme.primaryColor, width: 4) : BorderSide.none,
+          top: top
+              ? const BorderSide(color: AppTheme.primaryColor, width: 4)
+              : BorderSide.none,
+          bottom: !top
+              ? const BorderSide(color: AppTheme.primaryColor, width: 4)
+              : BorderSide.none,
+          left: left
+              ? const BorderSide(color: AppTheme.primaryColor, width: 4)
+              : BorderSide.none,
+          right: !left
+              ? const BorderSide(color: AppTheme.primaryColor, width: 4)
+              : BorderSide.none,
         ),
         borderRadius: BorderRadius.only(
           topLeft: top && left ? const Radius.circular(12) : Radius.zero,
