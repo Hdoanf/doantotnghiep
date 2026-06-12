@@ -393,12 +393,15 @@ class RecordDetailScreen extends StatelessWidget {
   }
 
   Map<String, dynamic> _getIndicatorConfig(String key) {
-    if (HealthConstants.bloodIndicators.containsKey(key))
+    if (HealthConstants.bloodIndicators.containsKey(key)) {
       return HealthConstants.bloodIndicators[key];
-    if (HealthConstants.vitalsIndicators.containsKey(key))
+    }
+    if (HealthConstants.vitalsIndicators.containsKey(key)) {
       return HealthConstants.vitalsIndicators[key];
-    if (HealthConstants.bodyIndicators.containsKey(key))
+    }
+    if (HealthConstants.bodyIndicators.containsKey(key)) {
       return HealthConstants.bodyIndicators[key];
+    }
     return {};
   }
 

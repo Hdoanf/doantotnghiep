@@ -8,32 +8,63 @@ import '../models/health_record.dart';
 class GeminiService {
   final String _apiKey = Env.groqApiKey;
 
-  final String _baseUrl =
-      "https://api.groq.com/openai/v1/chat/completions";
+  final String _baseUrl = "https://api.groq.com/openai/v1/chat/completions";
 
   final String _model = "meta-llama/llama-4-scout-17b-16e-instruct";
+
+  static const _systemPrompt =
+      "Bạn là trợ lý sức khỏe thông minh, trả lời bằng tiếng Việt. "
+      "Quy tắc: ngắn gọn, súc tích, thẳng vào vấn đề. "
+      "Không lặp lại câu hỏi, không dùng markdown phức tạp (###, **), không mở đầu bằng 'Dựa vào...'. "
+      "Chỉ dùng gạch đầu dòng khi liệt kê ≥3 mục. Tối đa 150 từ mỗi câu trả lời. "
+      "Không chẩn đoán chắc chắn, luôn gợi ý gặp bác sĩ nếu cần. "
+      "Khi phân tích nguy cơ bệnh: dùng ngưỡng y khoa chuẩn, xét xu hướng theo thời gian, "
+      "phân loại rủi ro theo 3 mức: Thấp / Trung bình / Cao.";
 
   Future<String> getHealthAdvice(
     List<HealthRecord> history,
     String userMessage,
   ) async {
     final context = _buildContext(history);
-    final prompt =
-        "$context\n\nNgười dùng hỏi: $userMessage\n"
-        "Trả lời bằng tiếng Việt theo cách dễ hiểu, đủ chi tiết để người dùng làm theo. "
-        "Cấu trúc câu trả lời gồm: nhận định chính, giải thích ngắn, các bước nên làm, khi nào cần đi khám. "
-        "Không dùng markdown phức tạp như ### hoặc **. Chỉ dùng tiêu đề ngắn và gạch đầu dòng khi cần. "
-        "Không chẩn đoán chắc chắn và không thay thế bác sĩ.";
-    return _callGemini(prompt);
+    final prompt = context.isNotEmpty
+        ? "$context\n\nCâu hỏi: $userMessage"
+        : userMessage;
+    return _callGemini(prompt, systemPrompt: _systemPrompt);
+  }
+
+  Future<String> analyzeHealthRisk(List<HealthRecord> history) async {
+    if (history.isEmpty) return "Chưa có dữ liệu để phân tích nguy cơ.";
+    final context = _buildContext(history);
+    const prompt = """
+Dựa trên lịch sử chỉ số sức khỏe, hãy phân tích nguy cơ mắc bệnh theo định dạng sau (giữ nguyên format):
+
+⚠️ CẢNH BÁO NGUY CƠ SỨC KHỎE
+
+Liệt kê các bệnh có nguy cơ, mỗi bệnh một dòng theo dạng:
+[Mức độ] Tên bệnh — lý do ngắn gọn (chỉ số nào bất thường)
+
+Mức độ dùng emoji: 🔴 Cao · 🟡 Trung bình · 🟢 Thấp
+
+Sau đó 1 dòng khuyến nghị quan trọng nhất. Tối đa 120 từ tổng cộng.
+
+Ngưỡng tham chiếu:
+- Glucose >6.1 mmol/L: nguy cơ tiểu đường
+- Cholesterol >5.2 hoặc LDL >3.4: nguy cơ tim mạch/xơ vữa
+- Triglycerides >1.7: hội chứng chuyển hóa
+- Systolic >130 hoặc Diastolic >85: tăng huyết áp → đột quỵ
+- HDL <1.0: nguy cơ tim mạch tăng thêm
+- SpO2 <95%: vấn đề hô hấp
+- BMI >25 (weight/height²): thừa cân → nhiều bệnh chuyển hóa
+""";
+    return _callGemini("$context\n\n$prompt", systemPrompt: _systemPrompt);
   }
 
   Future<String> generateSummaryReport(List<HealthRecord> history) async {
     if (history.isEmpty) return "Chưa có dữ liệu để tạo báo cáo.";
     final context = _buildContext(history);
     final prompt =
-        "$context\n\nTạo báo cáo tóm tắt sức khỏe bằng tiếng Việt. "
-        "Chia thành 3 mục ngắn: Tổng quan, Điểm cần theo dõi, Gợi ý.";
-    return _callGemini(prompt);
+        "$context\n\nTóm tắt sức khỏe ngắn gọn gồm 3 mục: Tổng quan, Điểm cần theo dõi, Gợi ý. Mỗi mục 1-2 câu.";
+    return _callGemini(prompt, systemPrompt: _systemPrompt);
   }
 
   Future<Map<String, double>> parseOCRText(String text) async {
@@ -87,8 +118,13 @@ class GeminiService {
     }
   }
 
-  Future<String> _callGemini(String prompt) async {
+  Future<String> _callGemini(String prompt, {String? systemPrompt}) async {
     final url = Uri.parse(_baseUrl);
+
+    final messages = [
+      if (systemPrompt != null) {"role": "system", "content": systemPrompt},
+      {"role": "user", "content": prompt},
+    ];
 
     try {
       final response = await http.post(
@@ -99,9 +135,7 @@ class GeminiService {
         },
         body: jsonEncode({
           "model": _model,
-          "messages": [
-            {"role": "user", "content": prompt},
-          ],
+          "messages": messages,
           "temperature": 0.45,
           "max_tokens": 4096,
         }),

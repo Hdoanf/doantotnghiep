@@ -7,6 +7,7 @@ import '../../services/auth_service.dart';
 import '../../services/gemini_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/openrouter_service.dart';
+import '../../widgets/flicker_spinner.dart';
 
 class AIChatScreen extends StatefulWidget {
   const AIChatScreen({super.key});
@@ -58,7 +59,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
       }
 
       String response;
-      if (_useOpenRouter) {
+      if (_isRiskAnalysisRequest(text)) {
+        response = await _gemini.analyzeHealthRisk(records);
+      } else if (_useOpenRouter) {
         response = await _openRouter.getChatResponse(records, text);
       } else {
         response = await _gemini.getHealthAdvice(records, text);
@@ -82,6 +85,12 @@ class _AIChatScreenState extends State<AIChatScreen> {
         _scrollToBottom();
       }
     }
+  }
+
+  bool _isRiskAnalysisRequest(String text) {
+    final lower = text.toLowerCase();
+    const keywords = ['cảnh báo', 'nguy cơ', 'rủi ro', 'bệnh sắp', 'có thể mắc', 'phân tích bệnh'];
+    return keywords.any((k) => lower.contains(k));
   }
 
   void _scrollToBottom() {
@@ -384,39 +393,10 @@ class _AIChatScreenState extends State<AIChatScreen> {
                 color: AppTheme.borderColor.withValues(alpha: 0.5),
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _dot(0),
-                const SizedBox(width: 4),
-                _dot(1),
-                const SizedBox(width: 4),
-                _dot(2),
-              ],
-            ),
+            child: const FlickerSpinner(size: 24),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _dot(int index) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.3, end: 1.0),
-      duration: Duration(milliseconds: 600 + index * 200),
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value,
-          child: Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: value),
-              shape: BoxShape.circle,
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -441,6 +421,12 @@ class _AIChatScreenState extends State<AIChatScreen> {
                   vertical: 10,
                 ),
                 children: [
+                  _suggestionChip(
+                    '⚠️ Cảnh báo nguy cơ bệnh',
+                    Icons.warning_amber_rounded,
+                    highlight: true,
+                  ),
+                  const SizedBox(width: 8),
                   _suggestionChip(
                     'Chỉ số hôm nay của tôi thế nào',
                     Icons.show_chart,
@@ -525,7 +511,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
     );
   }
 
-  Widget _suggestionChip(String text, IconData icon) {
+  Widget _suggestionChip(String text, IconData icon, {bool highlight = false}) {
     return GestureDetector(
       onTap: () {
         _controller.text = text;
@@ -534,28 +520,35 @@ class _AIChatScreenState extends State<AIChatScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
+          color: highlight
+              ? const Color(0xFFFFF3CD)
+              : AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppTheme.borderColor),
+          border: Border.all(
+            color: highlight
+                ? const Color(0xFFF59E0B)
+                : AppTheme.borderColor,
+          ),
           boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 2,
-              offset: Offset(0, 1),
-            ),
+            BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1)),
           ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: AppTheme.textColor),
+            Icon(
+              icon,
+              size: 16,
+              color: highlight ? const Color(0xFFF59E0B) : AppTheme.textColor,
+            ),
             const SizedBox(width: 6),
             Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Manrope',
                 fontSize: 13,
-                color: AppTheme.textColor,
+                color: highlight ? const Color(0xFF92400E) : AppTheme.textColor,
+                fontWeight: highlight ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
           ],

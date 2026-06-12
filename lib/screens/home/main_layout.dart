@@ -16,12 +16,13 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _selectedIndex = 0;
 
+  // Index 1 (ScanScreen) không cache — camera khởi động/tắt theo tab
   final List<Widget?> _screens = List<Widget?>.filled(5, null);
 
   Widget _screenFor(int index) {
+    if (index == 1) return const ScanScreen();
     return _screens[index] ??= switch (index) {
       0 => const HomeScreen(),
-      1 => const ScanScreen(),
       2 => const AIChatScreen(),
       3 => const HistoryScreen(),
       4 => const ProfileScreen(),
@@ -29,16 +30,30 @@ class _MainLayoutState extends State<MainLayout> {
     };
   }
 
+  // Index trong IndexedStack không tính slot scan (index 1)
+  // Screens: 0=Home, 1=AI, 2=History, 3=Profile
+  static const _nonScanIndices = [0, 2, 3, 4];
+
   @override
   Widget build(BuildContext context) {
-    _screenFor(_selectedIndex);
+    final isScan = _selectedIndex == 1;
+    final nonScanIndex = isScan ? 0 : _nonScanIndices.indexOf(_selectedIndex);
 
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
+      body: Stack(
         children: [
-          for (var i = 0; i < _screens.length; i++)
-            _screens[i] ?? const SizedBox.shrink(),
+          // Các tab không phải camera — giữ state qua IndexedStack
+          Offstage(
+            offstage: isScan,
+            child: IndexedStack(
+              index: nonScanIndex.clamp(0, 3),
+              children: _nonScanIndices
+                  .map((i) => _screens[i] ?? _screenFor(i))
+                  .toList(),
+            ),
+          ),
+          // Camera tab — chỉ build khi active, tự dispose khi rời tab
+          if (isScan) const ScanScreen(),
         ],
       ),
       bottomNavigationBar: Container(

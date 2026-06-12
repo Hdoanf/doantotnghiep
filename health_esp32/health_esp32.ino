@@ -105,7 +105,7 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
 
-  setCpuFrequencyMhz(80);
+  setCpuFrequencyMhz(160);
   Serial.begin(115200);
   delay(200);
 

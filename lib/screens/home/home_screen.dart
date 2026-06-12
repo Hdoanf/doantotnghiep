@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import '../../config/app_theme.dart';
 import '../../services/auth_service.dart';
@@ -11,6 +13,7 @@ import '../input/blood_test_input.dart';
 import '../input/vitals_input.dart';
 import '../input/live_vitals_screen.dart';
 import '../scan/ble_device_scan_screen.dart';
+import '../scan/scan_screen.dart';
 import '../input/body_metrics_input.dart';
 import '../metrics/health_metrics_screen.dart';
 
@@ -20,7 +23,6 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
 
 class _HomeScreenState extends State<HomeScreen> {
   final _firestoreService = FirestoreService();
@@ -127,7 +129,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, color: AppTheme.primaryLightColor),
+          icon: const Icon(
+            Icons.notifications_none_rounded,
+            color: AppTheme.primaryLightColor,
+          ),
           onPressed: () {},
         ),
         const SizedBox(width: 8),
@@ -167,23 +172,23 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 8),
         const Text(
           'Dưới đây là tổng quan sức khỏe của bạn hôm nay. Mọi chỉ số đang trong tầm kiểm soát.',
-          style: TextStyle(
-            color: AppTheme.secondaryTextColor,
-            fontSize: 14,
-          ),
+          style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 14),
         ),
       ],
     );
   }
 
-  Widget _buildQuickAccessActions(BuildContext context, List<HealthRecord> records) {
+  Widget _buildQuickAccessActions(
+    BuildContext context,
+    List<HealthRecord> records,
+  ) {
     return Row(
       children: [
         Expanded(
           child: GestureDetector(
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const BloodTestInput()),
+              MaterialPageRoute(builder: (_) => const ScanScreen()),
             ),
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -219,22 +224,26 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: GestureDetector(
-            onTap: () => _showAIReport(context, records),
+            onTap: () => _showRiskWarning(context, records),
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                color: AppTheme.accentLightColor,
+                color: const Color(0xFFFFF3CD),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.accentLightColor),
+                border: Border.all(color: const Color(0xFFF59E0B)),
               ),
               child: const Column(
                 children: [
-                  Icon(Icons.smart_toy, color: AppTheme.primaryColor, size: 32),
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Color(0xFFF59E0B),
+                    size: 32,
+                  ),
                   SizedBox(height: 8),
                   Text(
-                    'CHAT VỚI AI',
+                    ' AI CẢNH BÁO',
                     style: TextStyle(
-                      color: AppTheme.primaryColor,
+                      color: Color(0xFF92400E),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.5,
@@ -290,96 +299,18 @@ class _HomeScreenState extends State<HomeScreen> {
       cholesterol ??= r.indicators['cholesterol'];
     }
 
-    final bpStatus = _bloodPressureStatus(systolic: systolic, diastolic: diastolic);
+    final bpStatus = _bloodPressureStatus(
+      systolic: systolic,
+      diastolic: diastolic,
+    );
     final glucoseStatus = _statusFor(glucose, min: 3.9, max: 6.4);
     final cholStatus = _statusFor(cholesterol, min: 0.0, max: 5.2);
 
     return Column(
       children: [
-        // Heart Rate Live Card (New)
-        StreamBuilder<Map<String, dynamic>>(
-          stream: BleService().dataStream,
-          builder: (context, snapshot) {
-            final data = snapshot.data;
-            final bpm = data?['bpm'] ?? 0.0;
-            final hasData = bpm > 0;
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppTheme.primaryColor, AppTheme.primaryColor.withValues(alpha: 0.8)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: InkWell(
-                onTap: () {
-                  if (BleService().connectedDevice != null) {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const LiveVitalsScreen()));
-                  } else {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const BleDeviceScanScreen()));
-                  }
-                },
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.favorite, color: Colors.white, size: 32),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Nhịp tim trực tiếp',
-                            style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              Text(
-                                hasData ? bpm.toStringAsFixed(0) : '--',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Manrope',
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'BPM',
-                                style: TextStyle(color: Colors.white70, fontSize: 16),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+        // Heart Rate Live Card — widget riêng để BLE stream không rebuild cả trang
+        const _BleHeartRateCard(),
+        const SizedBox(height: 12),
         // BP Card (span 2)
         Container(
           width: double.infinity,
@@ -387,7 +318,9 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: AppTheme.surfaceColor,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderColor.withValues(alpha: 0.5)),
+            border: Border.all(
+              color: AppTheme.borderColor.withValues(alpha: 0.5),
+            ),
             boxShadow: [
               BoxShadow(
                 color: AppTheme.primaryLightColor.withValues(alpha: 0.04),
@@ -558,7 +491,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 value,
                 style: TextStyle(
-                  color: statusColor == AppTheme.criticalColor ? AppTheme.criticalColor : AppTheme.textColor,
+                  color: statusColor == AppTheme.criticalColor
+                      ? AppTheme.criticalColor
+                      : AppTheme.textColor,
                   fontSize: 24,
                   fontWeight: FontWeight.w600,
                   fontFamily: 'Manrope',
@@ -582,11 +517,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      iconData,
-                      size: 14,
-                      color: statusColor,
-                    ),
+                    Icon(iconData, size: 14, color: statusColor),
                     const SizedBox(width: 4),
                     Text(
                       statusText.toUpperCase(),
@@ -644,7 +575,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.surface2Color,
                   borderRadius: BorderRadius.circular(8),
@@ -675,8 +609,16 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 160,
               child: LineChart(
                 LineChartData(
-                  minY: chartRecords.map((r) => r.indicators['systolic']!).reduce((a, b) => a < b ? a : b) - 10,
-                  maxY: chartRecords.map((r) => r.indicators['systolic']!).reduce((a, b) => a > b ? a : b) + 10,
+                  minY:
+                      chartRecords
+                          .map((r) => r.indicators['systolic']!)
+                          .reduce((a, b) => a < b ? a : b) -
+                      10,
+                  maxY:
+                      chartRecords
+                          .map((r) => r.indicators['systolic']!)
+                          .reduce((a, b) => a > b ? a : b) +
+                      10,
                   gridData: FlGridData(
                     show: true,
                     drawVerticalLine: false,
@@ -686,17 +628,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   titlesData: FlTitlesData(
-                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 22,
                         interval: 1,
                         getTitlesWidget: (value, meta) {
-                          const labels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-                          if (value.toInt() < 0 || value.toInt() >= labels.length) return const SizedBox.shrink();
+                          const labels = [
+                            'T2',
+                            'T3',
+                            'T4',
+                            'T5',
+                            'T6',
+                            'T7',
+                            'CN',
+                          ];
+                          if (value.toInt() < 0 ||
+                              value.toInt() >= labels.length) {
+                            return const SizedBox.shrink();
+                          }
                           return Text(
                             labels[value.toInt() % labels.length],
                             style: const TextStyle(
@@ -753,7 +712,14 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppTheme.primaryColor, shape: BoxShape.circle)),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
               const SizedBox(width: 6),
               const Text(
                 'HUYẾT ÁP TÂM THU',
@@ -770,25 +736,28 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showAIReport(BuildContext context, List<HealthRecord> records) async {
+  void _showRiskWarning(
+    BuildContext context,
+    List<HealthRecord> records,
+  ) async {
     final gemini = GeminiService();
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
-      final report = await gemini.generateSummaryReport(records);
+      final report = await gemini.analyzeHealthRisk(records);
       if (context.mounted) {
-        Navigator.pop(context); // Close loading
+        Navigator.pop(context);
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          builder: (context) => _aiReportSheet(context, report),
+          builder: (_) => _riskWarningSheet(context, report),
         );
       }
     } catch (e) {
@@ -801,15 +770,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String _friendlyAiError(Object error) {
-    final message = error.toString().replaceFirst('Exception: ', '');
-    if (message.contains('429') || message.contains('quota')) {
-      return 'AI đang hết quota tạm thời. Chờ một lúc rồi thử lại.';
-    }
-    return 'Lỗi AI: $message';
-  }
-
-  Widget _aiReportSheet(BuildContext context, String report) {
+  Widget _riskWarningSheet(BuildContext context, String report) {
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.72,
@@ -825,12 +786,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 42,
                   height: 42,
                   decoration: BoxDecoration(
-                    color: AppTheme.accentLightColor,
+                    color: const Color(0xFFFFF3CD),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
-                    Icons.smart_toy_outlined,
-                    color: AppTheme.primaryColor,
+                    Icons.warning_amber_rounded,
+                    color: Color(0xFFF59E0B),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -839,7 +800,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Báo cáo phân tích AI',
+                        'Cảnh báo nguy cơ sức khỏe',
                         style: TextStyle(
                           color: AppTheme.textColor,
                           fontSize: 18,
@@ -847,10 +808,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Text(
-                        'Tóm tắt từ các chỉ số gần đây',
+                        'Phân tích từ dữ liệu sức khỏe của bạn',
                         style: TextStyle(
                           color: AppTheme.mutedTextColor,
-                          fontSize: 12,
+                          fontSize: 13,
                         ),
                       ),
                     ],
@@ -858,80 +819,74 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            _formattedAiReport(report),
             const SizedBox(height: 20),
-            SizedBox(
+            Container(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Đóng'),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF8E1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                ),
+              ),
+              child: MarkdownBody(
+                data: report,
+                styleSheet: MarkdownStyleSheet(
+                  p: const TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 15,
+                    height: 1.6,
+                    color: AppTheme.textColor,
+                  ),
+                  listBullet: const TextStyle(color: Color(0xFFF59E0B)),
+                ),
               ),
             ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.accentLightColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: AppTheme.primaryColor,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Đây là phân tích hỗ trợ, không thay thế chẩn đoán của bác sĩ.',
+                      style: TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 12,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
 
-  Widget _formattedAiReport(String report) {
-    final lines = report
-        .split('\n')
-        .map((line) => line.trim().replaceFirst(RegExp(r'^[-*#\s]+'), ''))
-        .where((line) => line.isNotEmpty)
-        .toList();
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor.withValues(alpha: 0.4)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: lines.map((line) {
-          final cleanLine = line.replaceAll('**', '');
-          final isHeading =
-              cleanLine.endsWith(':') ||
-              ['Tổng quan', 'Điểm cần theo dõi', 'Gợi ý'].contains(cleanLine);
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (!isHeading) ...[
-                  const Padding(
-                    padding: EdgeInsets.only(top: 8),
-                    child: Icon(
-                      Icons.circle,
-                      size: 6,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Expanded(
-                  child: Text(
-                    cleanLine,
-                    style: TextStyle(
-                      color: isHeading
-                          ? AppTheme.primaryColor
-                          : AppTheme.secondaryTextColor,
-                      fontSize: isHeading ? 15 : 13,
-                      height: 1.45,
-                      fontWeight: isHeading ? FontWeight.w700 : FontWeight.w400,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
+  String _friendlyAiError(Object error) {
+    final message = error.toString().replaceFirst('Exception: ', '');
+    if (message.contains('429') || message.contains('quota')) {
+      return 'AI đang hết quota tạm thời. Chờ một lúc rồi thử lại.';
+    }
+    return 'Lỗi AI: $message';
   }
+
 
   Widget _buildHealthInsight(List<HealthRecord> records) {
     final latest = records.isNotEmpty ? records.first.indicators : null;
@@ -997,37 +952,67 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppTheme.primaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: const Icon(Icons.favorite, color: AppTheme.primaryColor),
               ),
-              title: const Text('Nhập Sinh Tồn (Huyết áp, Nhịp tim)', style: TextStyle(fontWeight: FontWeight.w600)),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const VitalsInput()));
-              },
-            ),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppTheme.accentColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.monitor_weight, color: AppTheme.accentColor),
+              title: const Text(
+                'Nhập Sinh Tồn (Huyết áp, Nhịp tim)',
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
-              title: const Text('Nhập Chỉ Số Cơ Thể (Cân nặng, Chiều cao)', style: TextStyle(fontWeight: FontWeight.w600)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const BodyMetricsInput()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const VitalsInput()),
+                );
               },
             ),
             ListTile(
               leading: Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppTheme.warningColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.monitor_weight,
+                  color: AppTheme.accentColor,
+                ),
+              ),
+              title: const Text(
+                'Nhập Chỉ Số Cơ Thể (Cân nặng, Chiều cao)',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BodyMetricsInput()),
+                );
+              },
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.warningColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: const Icon(Icons.science, color: AppTheme.warningColor),
               ),
-              title: const Text('Nhập Xét Nghiệm Máu (Đường huyết, Mỡ máu)', style: TextStyle(fontWeight: FontWeight.w600)),
+              title: const Text(
+                'Nhập Xét Nghiệm Máu (Đường huyết, Mỡ máu)',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const BloodTestInput()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BloodTestInput()),
+                );
               },
             ),
           ],
@@ -1071,7 +1056,12 @@ class _SparklinePainter extends CustomPainter {
 
     final path = Path();
     path.moveTo(0, size.height * 0.5);
-    path.quadraticBezierTo(size.width * 0.1, size.height * 0.3, size.width * 0.2, size.height * 0.5);
+    path.quadraticBezierTo(
+      size.width * 0.1,
+      size.height * 0.3,
+      size.width * 0.2,
+      size.height * 0.5,
+    );
     path.lineTo(size.width * 0.4, size.height * 0.5);
     path.lineTo(size.width * 0.6, size.height * 0.2);
     path.lineTo(size.width * 0.8, size.height * 0.8);
@@ -1082,4 +1072,115 @@ class _SparklinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _BleHeartRateCard extends StatefulWidget {
+  const _BleHeartRateCard();
+
+  @override
+  State<_BleHeartRateCard> createState() => _BleHeartRateCardState();
+}
+
+class _BleHeartRateCardState extends State<_BleHeartRateCard> {
+  final _ble = BleService();
+  StreamSubscription? _sub;
+  double _bpm = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _sub = _ble.dataStream.listen((data) {
+      _bpm = (data['bpm'] ?? 0.0).toDouble();
+    });
+    _timer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasData = _bpm > 0;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppTheme.primaryColor, AppTheme.primaryColor.withValues(alpha: 0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => _ble.connectedDevice != null
+                  ? const LiveVitalsScreen()
+                  : const BleDeviceScanScreen(),
+            ),
+          );
+        },
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.favorite, color: Colors.white, size: 32),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Nhịp tim trực tiếp',
+                    style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        hasData ? _bpm.toStringAsFixed(0) : '--',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Manrope',
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('BPM', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
 }

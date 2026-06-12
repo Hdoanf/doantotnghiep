@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -25,6 +26,9 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
   double _currentSys = 0;
   double _currentDia = 0;
   bool _isSaving = false;
+
+  StreamSubscription? _bleSub;
+  Timer? _uiTimer;
 
   double _estimateSpO2(double bpm) {
     if (bpm <= 0) return 0;
@@ -67,30 +71,28 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
       }
     }
 
-    _bleService.dataStream.listen((data) {
-      if (mounted) {
-        setState(() {
-          _currentBpm = (data['bpm'] ?? 0.0).toDouble();
-          final packetSpO2 = (data['spo2'] ?? 0.0).toDouble();
-          final packetSys = (data['sys'] ?? 0.0).toDouble();
-          final packetDia = (data['dia'] ?? 0.0).toDouble();
+    // Cập nhật dữ liệu từ BLE mà không gọi setState mỗi packet
+    _bleSub = _bleService.dataStream.listen((data) {
+      _currentBpm = (data['bpm'] ?? 0.0).toDouble();
+      final packetSpO2 = (data['spo2'] ?? 0.0).toDouble();
+      final packetSys = (data['sys'] ?? 0.0).toDouble();
+      final packetDia = (data['dia'] ?? 0.0).toDouble();
 
-          _currentSpO2 =
-              packetSpO2 > 0 ? packetSpO2 : _estimateSpO2(_currentBpm);
-          final estBp = _estimateBloodPressure(_currentBpm);
-          _currentSys = packetSys > 0 ? packetSys : estBp.sys;
-          _currentDia = packetDia > 0 ? packetDia : estBp.dia;
+      _currentSpO2 = packetSpO2 > 0 ? packetSpO2 : _estimateSpO2(_currentBpm);
+      final estBp = _estimateBloodPressure(_currentBpm);
+      _currentSys = packetSys > 0 ? packetSys : estBp.sys;
+      _currentDia = packetDia > 0 ? packetDia : estBp.dia;
 
-          if (_currentBpm > 0) {
-            _rawSpots.add(FlSpot(_lastX, _currentBpm));
-            _lastX += 1;
-          }
-
-          if (_rawSpots.length > 30) {
-            _rawSpots.removeAt(0);
-          }
-        });
+      if (_currentBpm > 0) {
+        _rawSpots.add(FlSpot(_lastX, _currentBpm));
+        _lastX += 1;
+        if (_rawSpots.length > 30) _rawSpots.removeAt(0);
       }
+    });
+
+    // Chỉ rebuild UI tối đa 10 lần/giây thay vì mỗi packet BLE
+    _uiTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+      if (mounted) setState(() {});
     });
   }
 
@@ -142,6 +144,8 @@ class _LiveVitalsScreenState extends State<LiveVitalsScreen> {
 
   @override
   void dispose() {
+    _bleSub?.cancel();
+    _uiTimer?.cancel();
     super.dispose();
   }
 
